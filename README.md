@@ -32,7 +32,7 @@ Follow these steps to set up the project on your laptop.
 Always work on the dev branch or your own feature branch.
 
 COMMAND:
-git clone [https://github.com/faith-20-code/Curio-Group-Management-App.git](https://github.com/faith-20-code/Curio-Group-Management-App.git)
+git clone (https://github.com/<your-name>/Curio-Group-Management-App.git)
 cd Curio-Group-Management-App
 git checkout dev
 
