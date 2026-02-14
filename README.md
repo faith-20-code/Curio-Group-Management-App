@@ -11,9 +11,7 @@ We are using a **Django Templates** architecture (HTML inside Django).
 curio-management-platform/
 ├── backend/
 │   ├── config/              # Project settings (urls.py, settings.py)
-│   ├── accounts/            # App for Login/Signup/Profile
-│   ├── groups/              # App for Group logic
-│   ├── notifications/       # App for Alerts
+│   ├── management/          # Project app (models.py, views.py, admin.py)
 │   ├── templates/           # ALL HTML FILES GO HERE
 │   │   ├── base.html        # Shared layout (navbar)
 │   │   ├── accounts/        # HTML for login/signup
@@ -32,7 +30,7 @@ Follow these steps to set up the project on your laptop.
 Always work on the dev branch or your own feature branch.
 
 COMMAND:
-git clone (https://github.com/<your-name>/Curio-Group-Management-App.git)
+git clone https://github.com/<your-name>/Curio-Group-Management-App.git
 cd Curio-Group-Management-App
 git checkout dev
 
