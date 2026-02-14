@@ -22,82 +22,94 @@ curio-management-platform/
 │       ├── css/
 │       └── js/
 └── venv/                    # Virtual Environment (Ignored by Git)
+
+
+
 🚀 Getting Started
 Follow these steps to set up the project on your laptop.
 
 1. Clone & Branch
 Always work on the dev branch or your own feature branch.
 
-Bash
+COMMAND:
 git clone [https://github.com/faith-20-code/Curio-Group-Management-App.git](https://github.com/faith-20-code/Curio-Group-Management-App.git)
 cd Curio-Group-Management-App
 git checkout dev
+
+
 2. Set Up Virtual Environment
 Create the isolated Python environment.
 
-Windows:
+♟️Windows COMMAND :
 
-Bash
 python -m venv venv
 venv\Scripts\activate
-Mac/Linux:
 
-Bash
+♟️Mac/Linux COMMAND:
+
 python3 -m venv venv
 source venv/bin/activate
 (You should see (venv) in your terminal now).
 
 3. Install Dependencies
-Bash
+
+♟️COMMAND:
 pip install django
+
 4. Run the Server
 Navigate to the backend and start Django.
 
-Bash
+♟️COMMAND:
 cd backend
 python manage.py migrate       # Sets up the database
 python manage.py runserver     # Starts the site
+
 🎉 Open http://127.0.0.1:8000/ in your browser.
+
 
 👩‍💻 How to Contribute
 NEVER push directly to main.
 
-Update: git checkout dev -> git pull origin dev
+💠Update: git checkout dev -> git pull origin dev
 
-Branch: git checkout -b <your-name>/<feature> (e.g., faith/login-page)
+💠Branch: git checkout -b <your-name>/<feature> (e.g., faith/login-page)
 
-Work: Write your code.
+💠Work: Write your code.
 
-Frontend: Edit HTML in backend/templates/ and CSS in backend/static/.
+💠Frontend: Edit HTML in backend/templates/ and CSS in backend/static/.
 
-Backend: Edit views.py and models.py.
+💠Backend: Edit views.py and models.py.
 
-Save: git add . -> git commit -m "Description of work"
+💠Save: git add . -> git commit -m "Description of work"
 
-Upload: git push origin <your-branch-name>
+💠Upload: git push origin <your-branch-name>
 
-Merge: Go to GitHub and create a Pull Request to merge into dev.
+💠Merge: Go to GitHub and create a Pull Request to merge into dev.
+
 
 🆘 Troubleshooting
-"manage.py not found"
+
+📌"manage.py not found"
 
 Fix: You are in the wrong folder. Run: cd backend
 
-"No such table" (Database Error)
+📌"No such table" (Database Error)
 
 Fix: Your database is out of sync. Run: python manage.py migrate
 
-"Port 8000 already in use"
+📌"Port 8000 already in use"
 
 Fix: Close your other terminal or run: python manage.py runserver 8001
 
-"No module named django"
+📌"No module named django"
 
 Fix: Your virtual environment is off. Run: source venv/bin/activate (Mac) or venv\Scripts\activate (Windows).
 
-"TemplateDoesNotExist"
+📌"TemplateDoesNotExist"
 
 Fix: You put the HTML file in the wrong folder. Move it to backend/templates/.
+
+
 
 Happy coding and all the best!
 
