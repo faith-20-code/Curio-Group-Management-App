@@ -1,9 +1,13 @@
-# Curio-Group-Management-App
-A Django-based platform for managing projects in group settings, with the implementation of Ai.
+# 🦁 Curio-Group-Management-App
 
-📂 Project Structure
-We are using a Django Templates architecture (HTML inside Django).
+A Django-based platform for managing projects in group settings, with the implementation of AI.
 
+---
+
+## 📂 Project Structure
+We are using a **Django Templates** architecture (HTML inside Django).
+
+```text
 curio-management-platform/
 ├── backend/
 │   ├── config/              # Project settings (urls.py, settings.py)
@@ -18,49 +22,47 @@ curio-management-platform/
 │       ├── css/
 │       └── js/
 └── venv/                    # Virtual Environment (Ignored by Git)
-
 🚀 Getting Started
 Follow these steps to set up the project on your laptop.
 
 1. Clone & Branch
 Always work on the dev branch or your own feature branch.
 
-GIT COMMANDS :
-💠git clone https://github.com/YOUR_USERNAME/curio-group-management-app.git
-💠cd curio-group-management-app
-💠git checkout dev
-
-
+Bash
+git clone [https://github.com/faith-20-code/Curio-Group-Management-App.git](https://github.com/faith-20-code/Curio-Group-Management-App.git)
+cd Curio-Group-Management-App
+git checkout dev
 2. Set Up Virtual Environment
 Create the isolated Python environment.
 
-COMMANDS:
-# Windows
-💠python -m venv venv
-💠venv\Scripts\activate
+Windows:
 
-# Mac/Linux
-💠python3 -m venv venv
-💠source venv/bin/activate
+Bash
+python -m venv venv
+venv\Scripts\activate
+Mac/Linux:
+
+Bash
+python3 -m venv venv
+source venv/bin/activate
 (You should see (venv) in your terminal now).
 
 3. Install Dependencies
-COMMANDS:
-💠pip install django
-
+Bash
+pip install django
 4. Run the Server
 Navigate to the backend and start Django.
 
-COMMANDS:
-💠cd backend
-💠python manage.py migrate       # Sets up the database
-💠python manage.py runserver     # Starts the site
+Bash
+cd backend
+python manage.py migrate       # Sets up the database
+python manage.py runserver     # Starts the site
 🎉 Open http://127.0.0.1:8000/ in your browser.
 
 👩‍💻 How to Contribute
 NEVER push directly to main.
 
-Update: git checkout dev -> git pull origin dev (to make sure you have the updated code)
+Update: git checkout dev -> git pull origin dev
 
 Branch: git checkout -b <your-name>/<feature> (e.g., faith/login-page)
 
@@ -68,21 +70,34 @@ Work: Write your code.
 
 Frontend: Edit HTML in backend/templates/ and CSS in backend/static/.
 
-Backend: Edit views.py and models.py in your specific app.
+Backend: Edit views.py and models.py.
 
 Save: git add . -> git commit -m "Description of work"
 
-Upload: git push origin <your-branch-name> (eg faith/login-page)
+Upload: git push origin <your-branch-name>
 
 Merge: Go to GitHub and create a Pull Request to merge into dev.
 
-
 🆘 Troubleshooting
-💠"Module not found": Did you activate your venv? (source venv/bin/activate)
+"manage.py not found"
 
-💠"TemplateDoesNotExist": Did you put your HTML file in backend/templates/APP_NAME/?
+Fix: You are in the wrong folder. Run: cd backend
 
-💠"Database error": Run python manage.py migrate.
+"No such table" (Database Error)
+
+Fix: Your database is out of sync. Run: python manage.py migrate
+
+"Port 8000 already in use"
+
+Fix: Close your other terminal or run: python manage.py runserver 8001
+
+"No module named django"
+
+Fix: Your virtual environment is off. Run: source venv/bin/activate (Mac) or venv\Scripts\activate (Windows).
+
+"TemplateDoesNotExist"
+
+Fix: You put the HTML file in the wrong folder. Move it to backend/templates/.
 
 Happy coding and all the best!
 
