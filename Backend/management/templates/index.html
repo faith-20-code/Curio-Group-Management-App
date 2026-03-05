@@ -1,0 +1,121 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!--font awesome-->
+    <script src="https://kit.fontawesome.com/38ad8860ff.js" crossorigin="anonymous"></script>
+    <!--Google font-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Candal&display=swap" rel="stylesheet">
+    <!--Remix icon-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.css">
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="navbar">
+        <div class="container">
+            <h1 class="logo">CuRio</h1>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="#login">Login</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h2>Teamwork Made Easy</h2>
+            <p>Keep your group projects on track with Curio: The AI-powered workspace that ends the 'one-person-does-it-all' struggle.
+                From smart task assignment to real-time progress tracking, everyone stays involved and responsible.
+            </p>
+            <div class="hero-buttons">
+                <a href="#login" class="btn primary">Start</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About Curio</h2>
+            <p>This web application is designed to help university students manage group projects more efficiently. It allows group leaders to create tasks, assign work, and track progress, while members can update their task status and communicate easily.
+            The system also includes AI-assisted task allocation to help distribute work fairly among group members. Our goal is to simplify collaboration and improve productivity during academic projects.</p>
+        </div>
+        <!-- ABOUT CARDS -->
+        <section id="abouts" class="abouts">
+            <div class="container">
+               <h2>Stop Guessing. Start Organizing. Work Smarter Together.</h2>
+               <p>Discover how our platform transforms collaboration into a structured and stress-free experience.</p>
+               <div class="about-grid">
+                   <div class="about-card">
+                       <h3>Organize and Assign Tasks Easily</h3>
+                       <p>Create tasks, set deadlines, and assign responsibilities clearly. Curio helps group leaders distribute work fairly so every member knows what they need to do.</p>
+                    </div>
+                    <div class="about-card">
+                       <h3>Fair Task Distribution with AI</h3>
+                       <p>Curio uses intelligent task suggestions to help balance workloads within your group. This prevents one member from doing all the work and promotes equal participation.</p>
+                    </div>
+                    <div class="about-card">
+                       <h3>Track Progress and Meet Deadlines</h3>
+                       <p>Monitor task completion in real-time and ensure all deadlines are met. Curio provides visual progress tracking so everyone stays on the same page.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </section>
+
+    </section>
+
+    
+
+    <!-- CONTACT FORM-->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Get In Touch</h2>
+            <p>Have questions or feedback? We’d love to hear from you.</p>
+            <form action="mailto:your-email@example.com" method="post" enctype="text/plain">
+                <input type="hidden" name="access_key" value="83b1f3b9-b932-4460-9b80-9d09e6ca4deb">
+                <label for="name">Name:</label>
+                <input id="name" type="text" name="name" placeholder="Enter your name" class="contact-inputs" required>
+                <label for="email">Email:</label>
+                <input id="email" type="email" name="email" placeholder="name@email.com" class="contact-inputs" required>
+                <label for="message">Message:</label>
+                <textarea id="message" name="message" placeholder="Write a message" class="contact-inputs" required></textarea>
+                <button type="submit"><i class="ri-send-plane-fill"></i> Send </button>
+            </form>
+        </div>
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="contact">
+            <span><i class="fas fa-phone"></i>&nbsp; +254 712-345-67</span>
+            <span><i class="fas fa-envelope"></i>&nbsp; info@gmail.com</span>
+        </div>
+        <div class="socials">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-x-twitter"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+
+            
+            
+        </div>
+        <p>&copy; 2026 Curio</p>
+    </footer>
+</body>
+</html>
