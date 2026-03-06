@@ -10,14 +10,16 @@
 
 body {
   background-color: #f8f9fc;
-  color: #333;
+  color: #202020;
   line-height: 1.6;
 }
-
+h1{
+  color: #0a0a0a;
+}
 /* ===== NAVBAR ===== */
 .navbar {
-  background: #420b90;
-  color: white;
+  background: #f8f9fc;
+  color: rgb(15, 15, 15);
   padding: 15px 0;
   position: sticky;
   top: 0;
@@ -46,20 +48,20 @@ body {
 }
 
 .nav-links a {
-  color: white;
+  color: rgb(39, 39, 39);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
 .nav-links a:hover {
-  color: #161717;
+  color: #46468c;
 }
 
 /* ===== HERO SECTION ===== */
 .hero {
-  background: linear-gradient(120deg, #420b90, #8544e1);
-  color: white;
+  background: #f0edf3;
+  color: #191819;
   text-align: center;
   padding: 100px 20px;
 }
@@ -67,13 +69,14 @@ body {
 .hero h2 {
   font-size: 2.5em;
   margin-bottom: 15px;
-  color: #ffffff;
+  color: #1d1c1c;
 }
 
 .hero p {
   font-size: 1.1em;
   max-width: 700px;
   margin: 0 auto 30px;
+  color: #1d1c1c;
 }
 
 .hero-buttons .btn {
@@ -87,11 +90,11 @@ body {
 
 .btn.primary {
   background: white;
-  color: #420b90;
+  color: #202020;
 }
 
 .btn.primary:hover {
-  background: #420b92;
+  background: #29157f;
   color: white;
 }
 
@@ -118,7 +121,7 @@ section {
 }
 
 h2 {
-  color: #482678;
+  color: #161616;
   text-align: center;
   margin-bottom: 20px;
 }
@@ -145,19 +148,19 @@ p {
 }
 
 .about-card {
-  background: #e3f2fd;
+  background: #eae8ef;
   padding: 25px;
   border-radius: 10px;
   transition: background 0.3s ease, transform 0.3s ease;
 }
 
 .about-card:hover {
-  background: #ada0bf;
+  background: #a297c200;
   transform: translateY(-4px);
 }
 
 .about-card h3 {
-  color: #482678;
+  color: #1c1b1c;
   margin-bottom: 10px;
 }
 
@@ -172,29 +175,31 @@ p {
 
 .contact input, .contact textarea {
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #e8e7f7;
   border-radius: 6px;
   font-size: 1em;
 }
 
 .contact button {
-  padding: 12px;
-  background: #3c1574;
-  color: white;
+  padding: 15px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.3s ease;
+  font-size: 1em;
+  background: white;
+  color: #202020;
 }
 
 .contact button:hover {
-  background: #8544e1;
+  background: #29157f;
+  color: white;
 }
 
 /* ===== FOOTER ===== */
 footer {
-  background: #420b90;
-  color: white;
+  background: #fdfcfd;
+  color: rgb(19, 18, 18);
   text-align: center;
   padding: 25px 15px;
 }
@@ -204,26 +209,24 @@ footer .social-links {
 }
 
 footer a {
-  color: #edf0f2;
+  color: #1a1a1b;
   text-decoration: none;
   margin: 0 10px;
   transition: color 0.3s ease;
 }
 
-footer a:hover {
-  color: white;
-}
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .nav-links {
-    flex-direction: column;
-    background: #420b90;
+    flex-direction: row;
+    background: #726aae;
     position: absolute;
     top: 20px;
     right: 10px;
-    width: 200px;
-    padding: 15px;
+    width: 190px;
+    padding: 10px;
     display: flex;
+    margin-right: 0;
   }
 }

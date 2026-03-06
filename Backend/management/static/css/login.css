@@ -1,0 +1,119 @@
+
+/* ==== General Styling ==== */
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #ebe9fc;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+}
+
+/* ==== Auth Container ==== */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.auth-card {
+  background: #f0edf3;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  width: 400px;
+  text-align: center;
+  backdrop-filter: blur(15px);
+  animation: fadeIn 1s ease-in-out;
+}
+
+h1 {
+  font-size: 2rem;
+  color: #2a2a2b;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #3d3c3c;
+  margin-bottom: 30px;
+  font-size: 0.95rem;
+}
+
+/* ==== Form ==== */
+.form-group {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #2b2b2b;
+}
+
+input {
+  width: 100%;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: none;
+  margin-top: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #242424;
+  outline: none;
+  font-size: 1rem;
+}
+
+input:focus {
+  background: rgba(99, 98, 98, 0.2);
+  border: 1px solid #e5ebed;
+}
+
+/* ==== Button ==== */
+.btn-primary {
+  background: #7543bb;
+  border: none;
+  color: #fff;
+  padding: 12px 0;
+  width: 100%;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-primary:hover {
+  background: #5b29a1;
+}
+
+/* ==== Switch Links ==== */
+.switch {
+  margin-top: 20px;
+  color: #2f2e2e;
+  font-size: 0.9rem;
+}
+
+.switch a {
+  color: #3f3e3e;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.switch a:hover {
+  text-decoration: underline;
+}
+
+/* ==== Animation ==== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

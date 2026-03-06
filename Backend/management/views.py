@@ -8,6 +8,7 @@ from django.urls import reverse_lazy
 
 
 
+
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "dashboard.html"
 
@@ -86,10 +87,13 @@ class SubTaskCreateView(LoginRequiredMixin, CreateView):
             )
 
         return form
-
+from django.shortcuts import render
 # Create your views here.
 def home(request):
     return render(request, 'index.html')
 def login(request):
     return render(request, 'login.html')
-
+def team(request):
+    return render(request, 'team.html')
+def dashboard(request):
+    return render(request, 'dashboard.html')

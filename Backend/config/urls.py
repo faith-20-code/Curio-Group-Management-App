@@ -23,6 +23,8 @@ urlpatterns = [
     path('', include('management.urls')),
     path('admin/', admin.site.urls),
     path('management/', include('management.urls')),
-    path('management/login/', views.login, name='login'),
+    path('login/', views.login, name='login'),
+    path('team/', views.team, name='team'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 ]
 

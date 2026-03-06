@@ -1,0 +1,483 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CURIO - Tasks</title>
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+  <!-- Basic Icons -->
+<link href="https://cdn.boxicons.com/3.0.8/fonts/basic/boxicons.min.css" rel="stylesheet">
+<!-- Filled Icons -->
+<link href="https://cdn.boxicons.com/3.0.8/fonts/filled/boxicons-filled.min.css" rel="stylesheet">
+<!-- Brand Icons -->
+<link href="https://cdn.boxicons.com/3.0.8/fonts/brands/boxicons-brands.min.css" rel="stylesheet">
+</head>
+<body>
+    
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon"><i class="bx bx-book-bookmark"></i></div>
+        <div class="logo-text">
+        <span class="brand">CuRio</span><br>
+        <span class="sub">Group Sync System</span>
+    </div>
+</div>
+
+      <div class="menu-title">MAIN MENU</div>
+      
+      <nav class="menu">
+    <a href="#" class="menu-item active" onclick="showPage('dashboard', this)">
+        <i class="bx bx-dashboard"></i> Dashboard
+    </a>
+
+    <a href="#" class="menu-item" onclick="showPage('chat', this)">
+        <i class="bx bx-message"></i> Group Chat
+    </a>
+
+    <a href="#" class="menu-item" onclick="showPage('tasks', this)">
+        <i class="bx bx-task"></i> Tasks
+    </a>
+
+    <a href="#" class="menu-item" onclick="showPage('ai', this)">
+        <i class="bx bx-robot"></i> AI Assistant
+    </a>
+
+    <a href="#" class="menu-item" onclick="showPage('team', this)">
+        <i class="bx bx-group"></i> Team Members
+    </a>
+</nav>
+
+
+      <div class="user">
+        <div class="user-icon">D</div>
+        <div class="user-info">
+          <div class="name">Daniella</div>
+          <div class="status">Online </div> 
+        </div>
+        <i class="bx bx-arrow-out-right-square-half"></i>
+      </div>
+    </aside>
+<!-- ================================================= -->
+<!-- DASHBOARD PAGE -->
+<!-- ================================================= -->
+
+<main id="dashboard" class="page active main">
+
+<div class="header">
+<h1>Dashboard</h1>
+<p>Overview of your team's activity and progress.</p>
+</div>
+
+<div class="cards">
+
+<div class="card">
+<h3>Active Members</h3>
+<div class="value">5</div>
+<p></p>
+</div>
+
+<div class="card">
+<h3>Tasks Completed</h3>
+<div class="value"></div>
+<div class="progress">
+<div class="progress-bar" style="width:40%"></div>
+</div>
+</div>
+
+<div class="card">
+<h3>Upcoming Deadlines</h3>
+<div class="value"></div>
+<p></p>
+</div>
+
+<div class="card">
+<h3>Team Velocity</h3>
+<div class="value"></div>
+<p></p>
+</div>
+
+</div>
+
+<div class="bottom">
+
+<div class="card">
+<h3>Recent Activity</h3>
+
+<div class="activity">
+<div class="item"></div>
+<div class="item"></b></div>
+<div class="item"></b></div>
+<div class="item"></b></div>
+</div>
+
+</div>
+
+<div class="card">
+<h3>Quick Actions</h3>
+
+<button class="quick-btn">Invite Member</button>
+<button class="quick-btn">Schedule Meeting</button>
+<button class="quick-btn">Generate Report</button>
+
+</div>
+
+</div>
+
+</main>
+
+<!-- ================================================= -->
+<!-- GROUP CHAT PAGE -->
+<!-- ================================================= -->
+
+<main id="chat" class="page main">
+
+<div class="chat-layout">
+    
+    <aside class="chat-sidebar-card">
+        <div class="search-container">
+            <input type="text" placeholder="Search messages..." class="chat-search-input">
+        </div>
+
+        <div class="chat-list-scroll">
+            <div class="chat-list-item">
+                <div class="initial-avatar">G</div>
+                <div class="chat-item-details">
+                    <h4>General</h4>
+                    <p>No new messages</p>
+                </div>
+            </div>
+
+            <div class="chat-list-item active">
+                <div class="initial-avatar">R</div>
+                <div class="chat-item-details">
+                    <h4>Research Group</h4>
+                    <p>Garang: Perfect. Kasi, can...</p>
+                </div>
+            </div>
+
+            <div class="chat-list-item">
+                <div class="initial-avatar">O</div>
+                <div class="chat-item-details">
+                    <h4>Off-topic</h4>
+                    <p>No new messages</p>
+                </div>
+            </div>
+
+            <div class="chat-list-item">
+                <div class="initial-avatar">A</div>
+                <div class="chat-item-details">
+                    <h4>Announcements</h4>
+                    <p>No new messages</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <section class="chat-window-card">
+        <header class="window-header">
+            <div class="header-user-info">
+                <div class="header-avatar">RG</div>
+                <div>
+                    <h3>Research Group</h3>
+                    <span class="online-indicator">5 members online</span>
+                </div>
+            </div>
+            <div class="header-tools">
+                <button class="tool-btn"><i class="bx bx-phone"></i></button>
+                <button class="tool-btn"><i class="bx bx-video"></i></button>
+                <button class="tool-btn"><i class="bx bx-dots-vertical"></i></button>
+            </div>
+        </header>
+
+        <div class="message-container">
+            <div class="msg-row msg-left">
+                <div class="msg-bubble">
+                    <span class="msg-author">Garang</span>
+                    Hey team! How is the research coming along?
+                    <span class="msg-time">15:03</span>
+                </div>
+            </div>
+
+            <div class="msg-row msg-right">
+                <div class="msg-bubble">
+                    I just finished the data collection part. Uploading it to the dashboard now.
+                    <span class="msg-time">15:08</span>
+                </div>
+            </div>
+
+            <div class="msg-row msg-left">
+                <div class="msg-bubble">
+                    <span class="msg-author">Daniella</span>
+                    Great! I will start editing the draft once you upload it.
+                    <span class="msg-time">15:13</span>
+                </div>
+            </div>
+
+            <div class="msg-row msg-left">
+                <div class="msg-bubble">
+                    <span class="msg-author">Halima</span>
+                    I can help with the citations.
+                    <span class="msg-time">15:18</span>
+                </div>
+            </div>
+
+            <div class="msg-row msg-left">
+                <div class="msg-bubble">
+                    <span class="msg-author">Garang</span>
+                    Perfect. Kasi, can you check the formatting?
+                    <span class="msg-time">15:58</span>
+                </div>
+            </div>
+        </div>
+
+        <footer class="window-input-area">
+            <input type="text" placeholder="Type a message..." class="main-input">
+            <button class="send-button">➤</button>
+        </footer>
+    </section>
+</div>
+
+</main>
+
+<!-- ================================================= -->
+<!-- TASKS PAGE -->
+<!-- ================================================= -->
+
+<main id="tasks" class="page main">
+
+<header class="top-bar">
+  <h1>Tasks</h1>
+  <p>Manage your group's workload.</p>
+  <button class="new-task-btn">
+    <h3><span class="plus">+</span>New Task</h3>
+  </button>
+</header>
+
+<section class="task-board">
+
+  <!-- To Do -->
+  <div class="task-column">
+    <div class="column-header">
+      <span>To Do</span>
+      <span class="count">2</span>
+    </div>
+
+    <div class="task-card">
+      <span class="priority low">low</span>
+      <p class="title">Draft Introduction</p>
+      <p class="time">Next Week</p>
+      <div class="initial">H</div>
+    </div>
+
+    <div class="task-card">
+      <span class="priority medium">medium</span>
+      <p class="title">Formatting</p>
+      <p class="time">2 weeks</p>
+      <div class="initial">K</div>
+    </div>
+  </div>
+
+  <!-- In Progress -->
+  <div class="task-column">
+    <div class="column-header">
+      <span>In Progress</span>
+      <span class="count">1</span>
+    </div>
+
+    <div class="task-card">
+      <span class="priority medium">medium</span>
+      <p class="title">Statistical Analysis</p>
+      <p class="time">Tomorrow</p>
+      <div class="initial">D</div>
+    </div>
+  </div>
+
+  <!-- Done -->
+  <div class="task-column">
+    <div class="column-header">
+      <span>Done</span>
+      <span class="count">2</span>
+    </div>
+
+    <div class="task-card">
+      <span class="priority high">high</span>
+      <p class="title">Literature Review</p>
+      <p class="time">2 days ago</p>
+      <div class="initial">GL</div>
+    </div>
+
+    <div class="task-card">
+      <span class="priority high">high</span>
+      <p class="title">Data Collection</p>
+      <p class="time">Today</p>
+      <div class="initial">F</div>
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+
+
+<!-- ================================================= -->
+<!-- TEAM MEMBERS PAGE -->
+<!-- ================================================= -->
+
+<main id="team" class="page main">
+
+<header class="page-header">
+        <div class="header-titles">
+            <h1>Team Members</h1>
+            <p>Manage your group and permissions.</p>
+        </div>
+        <button class="invite-btn">Invite Member</button>
+    </header>
+
+    <div class="team-grid">
+        <div class="member-card active-border">
+            <span class="status-tag online">online</span>
+            <button class="more-options-btn">⋮</button>
+            
+            <div class="card-content">
+                <div class="profile-circle">G</div>
+                <div class="badge-lead">🛡️ LEAD</div>
+                <h3>Garang</h3>
+                <p class="role">Team Leader</p>
+            </div>
+
+            <div class="card-actions">
+                <button class="action-btn"><i class='bx bx-envelope'></i> Message</button>
+                <button class="action-btn"><i class='bx bx-user'></i> Profile</button>
+            </div>
+        </div>
+
+        <div class="member-card">
+            <span class="status-tag online">online</span>
+            <div class="card-content">
+                <div class="profile-circle">F</div>
+                <h3>Faith</h3>
+                <p class="role">Member</p>
+            </div>
+            <div class="card-actions">
+                <button class="action-btn"><i class='bx bx-envelope'></i> Message</button>
+                <button class="action-btn"><i class='bx bx-user'></i> Profile</button>
+            </div>
+        </div>
+
+        <div class="member-card">
+            <span class="status-tag busy">busy</span>
+            <div class="card-content">
+                <div class="profile-circle">D</div>
+                <h3>Daniella</h3>
+                <p class="role">Member</p>
+            </div>
+            <div class="card-actions">
+                <button class="action-btn"><i class='bx bx-envelope'></i> Message</button>
+                <button class="action-btn"><i class='bx bx-user'></i> Profile</button>
+            </div>
+        </div>
+
+        <div class="member-card">
+            <span class="status-tag offline">offline</span>
+            <div class="card-content">
+                <div class="profile-circle">H</div>
+                <h3>Halima</h3>
+                <p class="role">Member</p>
+            </div>
+            <div class="card-actions">
+                <button class="action-btn"><i class='bx bx-envelope'></i> Message</button>
+                <button class="action-btn"><i class='bx bx-user'></i> Profile</button>
+            </div>
+        </div>
+
+        <div class="member-card">
+            <span class="status-tag online">online</span>
+            <div class="card-content">
+                <div class="profile-circle">K</div>
+                <h3>Kasi</h3>
+                <p class="role">Member</p>
+            </div>
+            <div class="card-actions">
+                <button class="action-btn"><i class='bx bx-envelope'></i> Message</button>
+                <button class="action-btn"><i class='bx bx-user'></i> Profile</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ========================= -->
+<!-- AI PAGE -->
+<!-- ========================= -->
+
+<main id="ai" class="page main">
+    
+    <header class="page-header">
+        <div class="header-titles">
+            <div class="ai-header-info">
+                <div class="ai-brand-icon">
+                    <i class="bx bx-robot"></i> </div>
+                <div>
+                    <h1>Curio Assistant</h1>
+                    <p>Powered by Curio Intelligence</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="ai-card">
+        
+        <div class="ai-chat-window">
+            <div class="ai-message-row">
+                <div class="ai-avatar-mini">
+                    <i class="bx bx-robot"></i>
+                </div>
+                <div class="ai-bubble">
+                    Hello! I am Curio AI. How can I help your group today? I can summarize your chat, suggest tasks, or help with research.
+                </div>
+            </div>
+        </div>
+
+        <footer class="ai-footer">
+            <div class="ai-input-wrapper">
+                <input type="text" placeholder="Ask Curio anything..." class="ai-input">
+                <button class="ai-send-btn">
+                    <i class="bx bx-send"></i>
+                </button>
+            </div>
+        </footer>
+        
+    </div>
+</main>
+
+<!-- ================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ================================================= -->
+
+<script>
+function showPage(pageId, element){
+
+document.querySelectorAll(".page").forEach(page=>{
+page.classList.remove("active");
+});
+
+document.getElementById(pageId).classList.add("active");
+
+document.querySelectorAll(".menu-item").forEach(link=>{
+link.classList.remove("active");
+});
+
+element.classList.add("active");
+}
+</script>
+
+</body>
+</html>
+
+
+    
