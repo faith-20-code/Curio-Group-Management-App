@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,72 +12,45 @@
     <div class="header">
       <div>
         <h1>Team Members</h1>
-        <p>Manage your group and permissions.</p>
+        <p>{{ group.name|default:"No group assigned." }}</p>
       </div>
-      <button class="invite-btn">Invite Member</button>
+      {% if request.user.profile.is_leader %}
+        <a href="{% url 'group_create' %}"><button class="invite-btn">Invite Member</button></a>
+      {% endif %}
     </div>
 
     <div class="team-grid">
-      <!-- Garang -->
-      <div class="card active">
-        <div class="status online">online</div>
-        <div class="avatar">G</div>
-        <div class="role-label lead">LEAD</div>
-        <h3>Garang</h3>
-        <p class="role">Team Leader</p>
-        <div class="card-buttons">
-          <button class="msg-btn">Message</button>
-          <button class="profile-btn">Profile</button>
+      {% if group %}
+        <div class="card active">
+          <div class="status online">Leader</div>
+          <div class="avatar">{{ group.leader.username|first|upper }}</div>
+          <div class="role-label lead">LEAD</div>
+          <h3>{{ group.leader.username }}</h3>
+          <p class="role">Team Leader</p>
+          <div class="card-buttons">
+            <button class="msg-btn">Message</button>
+            <button class="profile-btn">Profile</button>
+          </div>
         </div>
-      </div>
 
-      <!-- Faith -->
-      <div class="card">
-        <div class="status online">online</div>
-        <div class="avatar">F</div>
-        <h3>Faith</h3>
-        <p class="role">Member</p>
-        <div class="card-buttons">
-          <button class="msg-btn">Message</button>
-          <button class="profile-btn">Profile</button>
-        </div>
-      </div>
-
-      <!-- Daniella -->
-      <div class="card">
-        <div class="status online">online</div>
-        <div class="avatar">D</div>
-        <h3>Daniella</h3>
-        <p class="role">Member</p>
-        <div class="card-buttons">
-          <button class="msg-btn">Message</button>
-          <button class="profile-btn">Profile</button>
-        </div>
-      </div>
-
-      <!-- Halima -->
-      <div class="card">
-        <div class="status offline">offline</div>
-        <div class="avatar">H</div>
-        <h3>Halima</h3>
-        <p class="role">Member</p>
-        <div class="card-buttons">
-          <button class="msg-btn">Message</button>
-          <button class="profile-btn">Profile</button>
-        </div>
-      </div>
-
-      <!-- Kasi -->
-      <div class="card">
-        <div class="status online">online</div>
-        <div class="avatar">K</div>
-        <h3>Kasi</h3>
-        <p class="role">Member</p>
-        <div class="card-buttons">
-          <button class="msg-btn">Message</button>
-          <button class="profile-btn">Profile</button>
-        </div>
-      </div>
+        {% for member in group.members.all %}
+          <div class="card">
+            <div class="status online">online</div>
+            <div class="avatar">{{ member.username|first|upper }}</div>
+            <h3>{{ member.username }}</h3>
+            <p class="role">Member</p>
+            {% if member.profile.skills %}
+              <p class="role" style="font-size:0.8rem; color:#999;">{{ member.profile.skills }}</p>
+            {% endif %}
+            <div class="card-buttons">
+              <button class="msg-btn">Message</button>
+              <button class="profile-btn">Profile</button>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No group found.</p>
+      {% endif %}
     </div>
   </div>
 </body>

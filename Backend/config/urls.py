@@ -17,16 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from management import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 urlpatterns = [
-    path('login/', views.login, name='login'),
-    path('team/', views.team, name='team'),
+    path('login/', views.login_view, name='login'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('', include('management.urls')),
     path('admin/', admin.site.urls),
-    path('management/', include('management.urls')),
-    
-    
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

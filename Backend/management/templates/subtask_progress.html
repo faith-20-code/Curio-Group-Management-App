@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Update Task Progress</title>
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>{{ subtask.title }}</h1>
+      <p class="subtitle">Work: {{ subtask.work.title }} — Current: {{ subtask.completion_percentage }}%</p>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label>Completion: <span id="pct-label">{{ subtask.completion_percentage }}%</span></label>
+          {{ form.completion_percentage }}
+        </div>
+        <button type="submit" class="btn-primary">Update Progress</button>
+      </form>
+
+      <p class="switch"><a href="{% url 'dashboard' %}">← Back</a></p>
+    </div>
+  </div>
+
+  <script>
+    const slider = document.querySelector('input[type="range"]');
+    const label = document.getElementById("pct-label");
+    slider.addEventListener("input", () => label.textContent = slider.value + "%");
+  </script>
+</body>
+</html>
