@@ -89,8 +89,15 @@ class SubTaskProgressForm(forms.ModelForm):
 class LeaderDocumentForm(forms.ModelForm):
     class Meta:
         model = Document
-        fields = ["title", "doc_type", "text_content", "file"]
+        fields = ["title", "work", "doc_type", "text_content", "file"]
         widgets = {"text_content": forms.Textarea(attrs={"rows": 4})}
+
+    def __init__(self, group=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if group:
+            self.fields["work"].queryset = Work.objects.filter(group=group)
+        self.fields["work"].required = False
+        self.fields["work"].empty_label = "— Not linked to a work item —"
 
     def clean(self):
         data = super().clean()
@@ -104,12 +111,20 @@ class LeaderDocumentForm(forms.ModelForm):
 class MemberDocumentForm(forms.ModelForm):
     class Meta:
         model = Document
-        fields = ["title", "file"]
+        fields = ["title", "work", "file"]  # work must be listed here
+
+    def __init__(self, group=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if group:
+            self.fields["work"].queryset = Work.objects.filter(group=group)
+        else:
+            self.fields["work"].queryset = Work.objects.none()
+        self.fields["work"].required = False
+        self.fields["work"].empty_label = "— Not linked to a work item —"
 
     def clean_file(self):
         f = self.cleaned_data.get("file")
         if f:
             ext = f.name.split(".")[-1].lower()
             if ext not in ("pdf", "doc", "docx"):
-                raise forms.ValidationError("Only PDF or Word files (.pdf, .doc, .docx) are allowed.")
-        return f
+                raise forms.ValidationError("Only PDF or Word files allowed.")

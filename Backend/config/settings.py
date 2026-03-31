@@ -125,3 +125,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 LOGIN_URL = "login"
+
+#Ai API KEY FOR GOOGLE GEMINI AI STUDIO
+GEMINI_API_KEY = "AIzaSyDPJOW5WLiiXWC1HYw6LQNuhKJboM2CjkE"

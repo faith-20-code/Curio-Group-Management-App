@@ -20,7 +20,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    Profile.objects.get_or_create(user=instance)
 
 
 
@@ -42,6 +42,7 @@ class Work(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     title = models.CharField(max_length = 255)
     description = models.TextField()
+    document = models.FileField(upload_to="work_docs/", blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete = models.CASCADE)
     created_at = models.DateTimeField(auto_now=True)
 
@@ -85,6 +86,7 @@ class Document(models.Model):
     TYPE_CHOICES = [("text", "Text"), ("file", "File")]
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="documents")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="documents")
+    work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name="documents", blank=True, null=True)
     title = models.CharField(max_length=255, blank=True)
     doc_type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="file")
     text_content = models.TextField(blank=True)

@@ -15,4 +15,7 @@ urlpatterns = [
     path("document/upload/", views.upload_document, name="upload_document"),
     path("document/<int:pk>/delete/", views.document_delete, name="document_delete"),
     path("member/<int:user_id>/", views.member_profile, name="member_profile"),
+    #Ai Logic for URLS
+    path("ai/chat/", views.ai_chat, name="ai_chat"),
+    path("ai/assign-tasks/", views.ai_assign_tasks, name="ai_assign_tasks"),
 ]
