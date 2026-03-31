@@ -1,14 +1,16 @@
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+import json
+import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView
 from django.contrib.auth.models import User
 from .models import Work, SubTask, Group, Document, Profile
-from .forms import (
-    SignupForm, GroupForm, AddMembersForm, WorkForm,
-    SubTaskForm, SubTaskProgressForm, LeaderDocumentForm, MemberDocumentForm
-)
+from .forms import (SignupForm, GroupForm, AddMembersForm, WorkForm,SubTaskForm, SubTaskProgressForm, LeaderDocumentForm, MemberDocumentForm)
 
 
 # ── Home ──────────────────────────────────────────────────────────────────────
@@ -193,12 +195,12 @@ def upload_document(request):
         if is_leader
         else Group.objects.filter(members=request.user).first()
     )
-
     if not group:
         return redirect("group_create")
 
     FormClass = LeaderDocumentForm if is_leader else MemberDocumentForm
-    form = FormClass(request.POST or None, request.FILES or None)
+
+    form = FormClass(group, request.POST or None, request.FILES or None)
 
     if request.method == "POST" and form.is_valid():
         doc = form.save(commit=False)
@@ -210,7 +212,6 @@ def upload_document(request):
         return redirect("dashboard")
 
     return render(request, "upload_document.html", {"form": form, "is_leader": is_leader})
-
 
 @login_required(login_url="login")
 def document_delete(request, pk):
@@ -244,3 +245,279 @@ def member_profile(request, user_id):
         "documents": documents,
         "group": group,
     })
+
+#--AI LOGIC VIEW------
+
+
+def _extract_document_text(doc):
+    """Return plain text from a Document instance."""
+    if doc.doc_type == "text" and doc.text_content:
+        return doc.text_content
+
+    if not doc.file:
+        return ""
+
+    file_name = doc.file.name.lower()
+
+    # PDF
+    if file_name.endswith(".pdf"):
+        try:
+            import pdfplumber
+            with pdfplumber.open(doc.file.path) as pdf:
+                return "\n".join(p.extract_text() or "" for p in pdf.pages)
+        except Exception:
+            return ""
+
+    # Word
+    if file_name.endswith(".docx"):
+        try:
+            from docx import Document as DocxDocument
+            d = DocxDocument(doc.file.path)
+            return "\n".join(p.text for p in d.paragraphs)
+        except Exception:
+            return ""
+
+    if file_name.endswith(".doc"):
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["antiword", doc.file.path],
+                capture_output=True, text=True
+            )
+            return result.stdout
+        except Exception:
+            return ""
+
+    return ""
+
+
+
+# ── AI: chat endpoint ─────────────────────────────────────────────────────────
+
+@require_POST
+@login_required(login_url="login")
+def ai_chat(request):
+    try:
+        body = json.loads(request.body)
+        user_message = body.get("message", "").strip()
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid request."}, status=400)
+
+    if not user_message:
+        return JsonResponse({"error": "Empty message."}, status=400)
+
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    is_leader = profile.is_leader
+    group = (
+        Group.objects.filter(leader=request.user).first()
+        if is_leader
+        else Group.objects.filter(members=request.user).first()
+    )
+
+    # Build full prompt with context baked in (Gemini style — no separate system param)
+    context_parts = [
+        "You are Curio AI, a helpful assistant for a university group project management system.",
+        f"You are talking to: {request.user.username} ({'Group Leader' if is_leader else 'Member'}).",
+    ]
+
+    if group:
+        context_parts.append(f"Group name: {group.name}")
+        context_parts.append(f"Group leader: {group.leader.username}")
+
+        members_info = []
+        for m in group.members.all():
+            p, _ = Profile.objects.get_or_create(user=m)
+            members_info.append(f"  - {m.username} (skills: {p.skills or 'not specified'})")
+        if members_info:
+            context_parts.append("Group members:\n" + "\n".join(members_info))
+
+        docs = Document.objects.filter(group=group).order_by("-uploaded_at")[:3]
+        for doc in docs:
+            text = _extract_document_text(doc)
+            if text:
+                context_parts.append(
+                    f"Document '{doc.title or 'Untitled'}' content:\n{text[:800]}"
+                )
+
+        subtasks = (
+            SubTask.objects.filter(work__group=group)
+            if is_leader
+            else SubTask.objects.filter(assigned_to=request.user)
+        )
+        if subtasks.exists():
+            task_lines = [
+                f"  - {s.title} → {s.assigned_to.username} ({s.get_status_display()}, {s.completion_percentage}%)"
+                for s in subtasks
+            ]
+            context_parts.append("Current tasks:\n" + "\n".join(task_lines))
+
+    # Combine context + user message into one prompt for Gemini
+    full_prompt = "\n\n".join(context_parts) + f"\n\nUser question: {user_message}"
+
+    try:
+        response = requests.post(
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}",
+        headers={"Content-Type": "application/json"},
+        json={
+            "contents": [{"parts": [{"text": full_prompt}]}],
+        },
+        timeout=30,)
+        data = response.json()
+        reply = data["candidates"][0]["content"]["parts"][0]["text"]
+        return JsonResponse({"reply": reply})
+
+    except (KeyError, IndexError):
+        error_msg = data.get("error", {}).get("message", "Unexpected response from Gemini.")
+        return JsonResponse({"error": error_msg}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+# ── AI: auto-assign tasks ─────────────────────────────────────────────────────
+
+@require_POST
+@login_required(login_url="login")
+def ai_assign_tasks(request):
+    try:
+        body = json.loads(request.body)
+        work_id = body.get("work_id")
+        doc_id = body.get("doc_id")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid request."}, status=400)
+
+    group = Group.objects.filter(leader=request.user).first()
+    if not group:
+        return JsonResponse({"error": "No group found."}, status=403)
+
+    work = get_object_or_404(Work, id=work_id, group=group)
+
+    if doc_id:
+        # Specific doc requested
+        doc = get_object_or_404(Document, id=doc_id, group=group)
+    else:
+        # Priority 1: doc tied directly to this work
+        doc = Document.objects.filter(
+            group=group, work=work, uploaded_by=request.user
+        ).order_by("-uploaded_at").first()
+
+        # Priority 2: any leader doc in the group
+        if not doc:
+            doc = Document.objects.filter(
+                group=group, uploaded_by=request.user
+            ).order_by("-uploaded_at").first()
+
+    if not doc:
+        return JsonResponse(
+            {"error": f"No document found for '{work.title}'. Upload a document and link it to this work first."},
+            status=400,
+        )
+
+    doc_text = _extract_document_text(doc)
+    if not doc_text.strip():
+        return JsonResponse(
+            {"error": "Could not read the document. Make sure it is a valid PDF, Word, or text document."},
+            status=400,
+        )
+
+    members = group.members.all()
+    if not members.exists():
+        return JsonResponse({"error": "No members in group yet."}, status=400)
+
+    member_list = []
+    for m in members:
+        p, _ = Profile.objects.get_or_create(user=m)
+        member_list.append({
+            "username": m.username,
+            "user_id": m.id,
+            "skills": p.skills or "general",
+        })
+
+    members_text = "\n".join(
+        f"- {m['username']} (skills: {m['skills']})" for m in member_list
+    )
+
+    prompt = f"""You are an AI project manager. Analyse the following project document and:
+1. Break it down into specific, actionable subtasks (between 3 and {len(member_list) * 2} subtasks).
+2. Assign each subtask to the most suitable group member based on their skills.
+3. Return ONLY a valid JSON array. No explanation, no markdown, no code fences.
+
+Project document:
+\"\"\"
+{doc_text[:3000]}
+\"\"\"
+
+Group members and their skills:
+{members_text}
+
+Required output format (JSON array only):
+[
+  {{"title": "Subtask name", "assigned_to": "username"}},
+  {{"title": "Another subtask", "assigned_to": "username"}}
+]"""
+
+    try:
+        response = requests.post(
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}",
+        headers={"Content-Type": "application/json"},
+        json={
+            "contents": [{"parts": [{"text": prompt}]}],
+        },
+        timeout=30,)
+        data = response.json()
+        raw = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+
+        if "```" in raw:
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+                raw = raw.strip()
+
+            subtask_suggestions = json.loads(raw)
+
+    except json.JSONDecodeError as e:
+        return JsonResponse(
+        {"error": f"AI returned invalid JSON: {str(e)}. Raw: {raw[:200]}"},
+        status=500,
+        )
+    except (KeyError, IndexError):
+        error_msg = data.get("error", {}).get("message", "Unexpected response from Gemini.")
+        return JsonResponse({"error": error_msg}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+    member_lookup = {m["username"]: m["user_id"] for m in member_list}
+    created = []
+
+    for item in subtask_suggestions:
+        title = item.get("title", "").strip()
+        username = item.get("assigned_to", "").strip()
+        user_id = member_lookup.get(username)
+
+        if not title or not user_id:
+            continue
+
+        assigned_user = User.objects.filter(id=user_id).first()
+        if not assigned_user:
+            continue
+
+        subtask = SubTask.objects.create(
+            work=work,
+            title=title,
+            assigned_to=assigned_user,
+            status="pending",
+            completion_percentage=0,
+        )
+        created.append({
+            "id": subtask.id,
+            "title": subtask.title,
+            "assigned_to": assigned_user.username,
+            "status": subtask.get_status_display(),
+        })
+
+    if not created:
+        return JsonResponse(
+            {"error": "AI could not match tasks to members. Make sure member skills are filled in."},
+            status=400,
+        )
+
+    return JsonResponse({"subtasks": created, "count": len(created)})

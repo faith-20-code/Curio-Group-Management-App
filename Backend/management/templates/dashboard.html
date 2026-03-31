@@ -272,6 +272,33 @@
         </div>
       </main>
 
+
+    <!-- ================================================= -->
+    <!-- WORKS LIST — add this inside the dashboard page   -->
+    <!-- after the documents card                          -->
+    <!-- ================================================= -->
+    {% if is_leader and works %}
+    <div class="card" style="margin-top:1.5rem;">
+        <h3>📋 Works</h3>
+            <div class="activity">
+            {% for work in works %}
+            <div class="item" style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0;">
+            <div>
+                <strong>{{ work.title }}</strong>
+                <p style="font-size:0.78rem; color:#aaa; margin:2px 0 0;">{{ work.description|truncatewords:10 }}</p>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                {% if documents %}
+                <button onclick="assignTasks({{ work.id }})" style="font-size:0.75rem; padding:4px 10px; border-radius:4px; border:none; background:#6c63ff; color:#fff; cursor:pointer;">🤖 Auto-Assign Tasks
+                </button>
+                {% endif %}
+            </div>
+            </div>
+            {% endfor %}
+            </div>
+    </div>
+    {% endif %}
+
       <!-- ================================================= -->
       <!-- GROUP CHAT PAGE                                    -->
       <!-- ================================================= -->
@@ -605,46 +632,50 @@
       <!-- ================================================= -->
       <!-- AI PAGE                                            -->
       <!-- ================================================= -->
-      <main id="ai" class="page main">
-        <header class="page-header">
-          <div class="header-titles">
-            <div class="ai-header-info">
-              <div class="ai-brand-icon"><i class="bx bx-robot"></i></div>
-              <div>
-                <h1>Curio Assistant</h1>
-                <p>Powered by Curio Intelligence</p>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div class="ai-card">
-          <div class="ai-chat-window" id="ai-chat-window">
-            <div class="ai-message-row">
-              <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
-              <div class="ai-bubble">
-                Hello {{ request.user.username }}! I'm Curio AI. How can I help
-                your group today? I can summarize documents, suggest task
-                assignments, or help with research.
-              </div>
-            </div>
-          </div>
-
-          <footer class="ai-footer">
-            <div class="ai-input-wrapper">
-              <input
-                type="text"
-                id="ai-input"
-                placeholder="Ask Curio anything..."
-                class="ai-input"
-              />
-              <button class="ai-send-btn" onclick="sendAiMessage()">
-                <i class="bx bx-send"></i>
-              </button>
-            </div>
-          </footer>
+    <main id="ai" class="page main">
+  <header class="page-header">
+    <div class="header-titles">
+      <div class="ai-header-info">
+        <div class="ai-brand-icon"><i class="bx bx-robot"></i></div>
+        <div>
+          <h1>Curio Assistant</h1>
+          <p>Powered by Claude AI</p>
         </div>
-      </main>
+      </div>
+    </div>
+  </header>
+
+  <div class="ai-card">
+    <div class="ai-chat-window" id="ai-chat-window">
+      <div class="ai-message-row">
+        <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
+        <div class="ai-bubble">
+          Hello <strong>{{ request.user.username }}</strong>! I'm Curio AI.<br><br>
+          I can help you with:
+          <ul style="margin:6px 0 0 16px; font-size:0.9rem;">
+            <li>Answering questions about your group's tasks and progress</li>
+            <li>Summarising uploaded documents</li>
+            {% if is_leader %}
+            <li>Auto-assigning tasks — click <strong>🤖 Auto-Assign Tasks</strong> next to any work on your dashboard</li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assignment result banner (hidden by default) -->
+    <div id="assign-result" style="display:none; margin:0.5rem 1rem; padding:10px 14px; border-radius:6px; font-size:0.85rem;"></div>
+
+    <footer class="ai-footer">
+      <div class="ai-input-wrapper">
+        <input type="text" id="ai-input" placeholder="Ask Curio anything about your group..." class="ai-input">
+        <button class="ai-send-btn" onclick="sendAiMessage()">
+          <i class="bx bx-send"></i>
+        </button>
+      </div>
+    </footer>
+  </div>
+</main>
     </div>
     <!-- end .container -->
 
@@ -652,49 +683,139 @@
     <!-- JAVASCRIPT                                         -->
     <!-- ================================================= -->
     <script>
-      function showPage(pageId, element) {
-        document
-          .querySelectorAll(".page")
-          .forEach((p) => p.classList.remove("active"));
-        document.getElementById(pageId).classList.add("active");
-        document
-          .querySelectorAll(".menu-item")
-          .forEach((l) => l.classList.remove("active"));
-        element.classList.add("active");
-      }
+        const CSRF = "{{ csrf_token }}";
 
-      function sendAiMessage() {
-        const input = document.getElementById("ai-input");
-        const window_ = document.getElementById("ai-chat-window");
-        const msg = input.value.trim();
-        if (!msg) return;
+        // ── Page navigation ────────────────────────────────
+        function showPage(pageId, element) {
+            document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+            document.getElementById(pageId).classList.add("active");
+            document.querySelectorAll(".menu-item").forEach(l => l.classList.remove("active"));
+            element.classList.add("active");}
 
-        // User bubble
-        window_.innerHTML += `
-      <div class="ai-message-row" style="justify-content:flex-end;">
-        <div class="ai-bubble" style="background:#6c63ff; color:#fff;">${msg}</div>
-      </div>`;
+        // ── AI Chat ────────────────────────────────────────
+        async function sendAiMessage() {
+            const input = document.getElementById("ai-input");
+            const chatWindow = document.getElementById("ai-chat-window");
+            const msg = input.value.trim();
+            if (!msg) return;
 
+        // Show user bubble
+        chatWindow.innerHTML += `
+            <div class="ai-message-row" style="justify-content:flex-end;">
+            <div class="ai-bubble" style="background:#6c63ff;color:#fff;">${msg}</div>
+            </div>`;
         input.value = "";
-        window_.scrollTop = window_.scrollHeight;
+        chatWindow.scrollTop = chatWindow.scrollHeight;
 
-        // Placeholder AI response — replace with real API call when integrating AI
-        setTimeout(() => {
-          window_.innerHTML += `
-        <div class="ai-message-row">
-          <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
-          <div class="ai-bubble">I received your message. AI integration coming soon!</div>
-        </div>`;
-          window_.scrollTop = window_.scrollHeight;
-        }, 600);
-      }
+        // Thinking indicator
+        const thinkingId = "thinking-" + Date.now();
+        chatWindow.innerHTML += `
+            <div class="ai-message-row" id="${thinkingId}">
+            <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
+            <div class="ai-bubble" style="color:#aaa; font-style:italic;">Thinking...</div>
+            </div>`;
+        chatWindow.scrollTop = chatWindow.scrollHeight;
 
-      // Allow Enter key in AI input
-      document
-        .getElementById("ai-input")
-        .addEventListener("keydown", function (e) {
-          if (e.key === "Enter") sendAiMessage();
+        try {
+            const res = await fetch("/ai/chat/", {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "X-CSRFToken": CSRF},
+            body: JSON.stringify({message: msg}),
         });
+        const data = await res.json();
+
+        // Remove thinking bubble
+        document.getElementById(thinkingId)?.remove();
+
+        const reply = data.reply || data.error || "Something went wrong.";
+        // Convert newlines to <br> for display
+        const formatted = reply.replace(/\n/g, "<br>");
+
+        chatWindow.innerHTML += `
+            <div class="ai-message-row">
+                <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
+                <div class="ai-bubble">${formatted}</div>
+            </div>`;
+        } catch {
+            document.getElementById(thinkingId)?.remove();
+            chatWindow.innerHTML += `
+            <div class="ai-message-row">
+                <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
+                <div class="ai-bubble" style="color:red;">Connection error. Please try again.</div>
+            </div>`;
+        }
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // Enter key support
+        document.getElementById("ai-input").addEventListener("keydown", e => {
+        if (e.key === "Enter") sendAiMessage();});
+
+        // ── AI Auto-Assign Tasks ───────────────────────────
+        async function assignTasks(workId) {
+            const btn = event.target;
+            const resultDiv = document.getElementById("assign-result");
+
+            btn.disabled = true;
+            btn.textContent = "⏳ Analysing document...";
+
+        // Switch to AI page to show progress
+        showPage("ai", document.querySelector('[onclick="showPage(\'ai\', this)"]'));
+
+        const chatWindow = document.getElementById("ai-chat-window");
+        const loadingId = "loading-" + Date.now();
+        chatWindow.innerHTML += `
+        <div class="ai-message-row" id="${loadingId}">
+            <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
+            <div class="ai-bubble" style="color:#aaa; font-style:italic;">📄 Reading your document and matching tasks to member skills...</div>
+        </div>`;
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        try {
+            const res = await fetch("/ai/assign-tasks/", {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "X-CSRFToken": CSRF},
+            body: JSON.stringify({work_id: workId}),
+        });
+        const data = await res.json();
+
+        document.getElementById(loadingId)?.remove();
+        btn.disabled = false;
+        btn.textContent = "🤖 Auto-Assign Tasks";
+
+        if (data.error) {
+            chatWindow.innerHTML += `
+            <div class="ai-message-row">
+                <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
+                <div class="ai-bubble" style="color:#e53935;">❌ ${data.error}</div>
+            </div>`;
+        } else {
+        // Build a summary of assignments
+            let taskLines = data.subtasks.map(s =>`<li><strong>${s.title}</strong> → ${s.assigned_to}</li>`).join("");
+
+            chatWindow.innerHTML += `
+            <div class="ai-message-row">
+                <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
+                <div class="ai-bubble">✅ I've created <strong>${data.count} subtasks</strong> and assigned them based on member skills:<br>
+                <ul style="margin:8px 0 0 16px;">${taskLines}</ul>
+                <br>Reload the <strong>Tasks</strong> page to see them on the board.
+                </div>
+            </div>`;
+        
+        // Auto-reload tasks board after 2s
+        setTimeout(() => location.reload(), 2000);}
+        } catch {
+            document.getElementById(loadingId)?.remove();
+            btn.disabled = false;
+            btn.textContent = "🤖 Auto-Assign Tasks";
+            chatWindow.innerHTML += `
+            <div class="ai-message-row">
+                <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
+                <div class="ai-bubble" style="color:red;">Connection error. Please try again.</div>
+            </div>`;
+        }
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
     </script>
   </body>
 </html>
