@@ -73,11 +73,6 @@ class WorkAdmin(admin.ModelAdmin):
 
 
 
-
-
-
-
-
 @admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):
     filter_horizontal = ("members",)

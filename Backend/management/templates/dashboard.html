@@ -58,7 +58,7 @@
         <div class="user">
           <div class="user-icon">{{ request.user.username|first|upper }}</div>
           <div class="user-info">
-            <div class="name">{{ request.user.username }}</div>
+            <div class="name">{{ request.user.username }}</div> 
             <div class="status">
               {% if is_leader %}Leader{% else %}Member{% endif %}
             </div>
@@ -90,10 +90,17 @@
           </form>
           {% endif %}
           <p>
-            {% if group %} {{ group.name }}{% if is_leader %} — Leader View{%
-            else %} — Member View{% endif %} {% else %} Welcome, {{
-            request.user.username }} {% endif %}
-          </p>
+  {% if group %}
+    {{ group.name }}
+    {% if is_leader %}
+      — Leader View
+    {% else %}
+      — Member View
+    {% endif %}
+  {% else %}
+    Welcome, {{ request.user.username }}
+  {% endif %}
+</p>
         </div>
 
         <div class="cards">
@@ -358,10 +365,12 @@
             <div class="column-header">
               <span>To Do</span>
               <span class="count">
-                {% with count=0 %} {% for s in subtasks %}{% if s.status ==
-                'pending' %}{% with count=count|add:1 %}{% endwith %}{% endif
-                %}{% endfor %} {{ subtasks|length }} {% endwith %}
-              </span>
+  {% for s in subtasks %}
+    {% if s.status == "pending" %}
+      {{ forloop.counter }}
+    {% endif %}
+  {% endfor %}
+</span>
             </div>
 
             {% for subtask in subtasks %} {% if subtask.status == "pending" %}
