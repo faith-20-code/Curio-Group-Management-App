@@ -13,6 +13,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^10&kt3&#wjdy+7yg3th4$(!ur@t(y)ug8c-k^153%zvr^c%7n'
+SECRET_KEY = os.getenv("secret_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -127,4 +131,4 @@ MEDIA_ROOT = BASE_DIR / "media"
 LOGIN_URL = "login"
 
 #Ai API KEY FOR GOOGLE GEMINI AI STUDIO
-GEMINI_API_KEY = "AIzaSyDPJOW5WLiiXWC1HYw6LQNuhKJboM2CjkE"
+OPENROUTER_API_KEY = os.getenv("Open_router_api_key")

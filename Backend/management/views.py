@@ -1,23 +1,61 @@
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import TemplateView
 from django.contrib.auth.models import User
 from .models import Work, SubTask, Group, Document, Profile
-from .forms import (SignupForm, GroupForm, AddMembersForm, WorkForm,SubTaskForm, SubTaskProgressForm, LeaderDocumentForm, MemberDocumentForm)
+from .forms import (
+    SignupForm, GroupForm, AddMembersForm, WorkForm,
+    SubTaskForm, SubTaskProgressForm, LeaderDocumentForm, MemberDocumentForm
+)
+
+
+
+# Change this line at the top of views.py
 
 
 # ── Home ──────────────────────────────────────────────────────────────────────
-
 def home(request):
     return render(request, "index.html")
 
+
+# ── AI Helper ─────────────────────────────────────────────────────────────────
+def _call_ai(prompt):
+    response = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "nvidia/nemotron-3-super-120b-a12b:free",
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 1000,
+        },
+        timeout=30,
+    )
+
+    print("OR STATUS:", response.status_code)
+    print("OR RAW:", response.text[:300])
+
+    try:
+        data = response.json()
+    except Exception:
+        raise Exception(f"Non-JSON response: {response.text[:200]}")
+
+    if "choices" in data:
+        content = data["choices"][0]["message"]["content"].strip()
+        print("OR CONTENT:", content[:300])
+        return content
+
+    if "error" in data:
+        raise Exception(str(data["error"]))
+
+    raise Exception(f"Unexpected response: {str(data)[:200]}")
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
@@ -34,7 +72,7 @@ def login_view(request):
             Profile.objects.get_or_create(user=user)
             if user.is_superuser:
                 return redirect("/admin/")
-            return redirect("dashboard")   # one dashboard, handles both roles
+            return redirect("dashboard")
         error = "Invalid username or password."
     return render(request, "login.html", {"error": error})
 
@@ -44,9 +82,9 @@ def signup_view(request):
     if request.method == "POST" and form.is_valid():
         user = User.objects.create_user(
             username=form.cleaned_data["username"],
-            email=form.cleaned_data["email"],
-            first_name=form.cleaned_data["first_name"],
-            last_name=form.cleaned_data["last_name"],
+            email=form.cleaned_data.get("email", ""),
+            first_name=form.cleaned_data.get("first_name", ""),
+            last_name=form.cleaned_data.get("last_name", ""),
             password=form.cleaned_data["password"],
         )
         profile, _ = Profile.objects.get_or_create(user=user)
@@ -61,8 +99,7 @@ def logout_view(request):
     auth_logout(request)
     return redirect("login")
 
-
-# ── Shared dashboard (leader + member) ───────────────────────────────────────
+# ── Dashboard ─────────────────────────────────────────────────────────────────
 
 @login_required(login_url="login")
 def dashboard(request):
@@ -74,28 +111,22 @@ def dashboard(request):
 
     if is_leader:
         group_id = request.GET.get("group")
-        selected_group = None
-        if group_id:
-            selected_group = leader_groups.filter(id=group_id).first()
-        selected_group = selected_group or leader_groups.first()
-        group = selected_group
+        selected_group = leader_groups.filter(id=group_id).first() if group_id else None
+        group = selected_group or leader_groups.first()
     else:
         group = member_group
 
     works = Work.objects.filter(group=group) if group else Work.objects.none()
     documents = Document.objects.filter(group=group) if group else Document.objects.none()
+    subtasks = (
+        SubTask.objects.filter(work__group=group)
+        if is_leader and group
+        else SubTask.objects.filter(assigned_to=request.user)
+    )
 
-    if is_leader:
-        subtasks = SubTask.objects.filter(work__group=group) if group else SubTask.objects.none()
-    else:
-        subtasks = SubTask.objects.filter(assigned_to=request.user)
-
-    if subtasks.exists():
-        completed_count = subtasks.filter(status='completed').count()
-        total_count = subtasks.count()
-        task_completion_percentage = (completed_count / total_count * 100) if total_count > 0 else 0
-    else:
-        task_completion_percentage = 0
+    total = subtasks.count()
+    completed = subtasks.filter(status="completed").count()
+    task_completion_percentage = round(completed / total * 100) if total > 0 else 0
 
     return render(request, "dashboard.html", {
         "group": group,
@@ -107,7 +138,6 @@ def dashboard(request):
         "task_completion_percentage": task_completion_percentage,
     })
 
-
 # ── Group ─────────────────────────────────────────────────────────────────────
 
 @login_required(login_url="login")
@@ -118,7 +148,6 @@ def group_create(request):
         group.leader = request.user
         group.save()
         form.save_m2m()
-        # Promote user to leader
         profile, _ = Profile.objects.get_or_create(user=request.user)
         profile.is_leader = True
         profile.save()
@@ -136,7 +165,6 @@ def group_add_members(request, group_id):
         return redirect("dashboard")
     return render(request, "group_form.html", {"form": form, "title": "Add Members"})
 
-
 # ── Work ──────────────────────────────────────────────────────────────────────
 
 @login_required(login_url="login")
@@ -144,20 +172,17 @@ def work_create(request):
     leader_groups = Group.objects.filter(leader=request.user)
     if not leader_groups.exists():
         return redirect("group_create")
-
     form = WorkForm(request.user, request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
         work = form.save(commit=False)
         work.created_by = request.user
         work.save()
         return redirect("dashboard")
-
     return render(request, "work_form.html", {
         "form": form,
         "title": "Create Work",
         "leader_groups": leader_groups,
     })
-
 
 # ── SubTask ───────────────────────────────────────────────────────────────────
 
@@ -167,22 +192,17 @@ def subtask_create(request):
     if request.method == "POST" and form.is_valid():
         form.save()
         return redirect("dashboard")
-    return render(request, "subtask_form.html", {
-        "form": form,
-        "title": "Assign Task",
-    })
+    return render(request, "subtask_form.html", {"form": form, "title": "Assign Task"})
 
 
 @login_required(login_url="login")
 def subtask_update(request, pk):
-    """Member updates their task completion percentage."""
     subtask = get_object_or_404(SubTask, pk=pk, assigned_to=request.user)
     form = SubTaskProgressForm(request.POST or None, instance=subtask)
     if request.method == "POST" and form.is_valid():
         form.save()
         return redirect("dashboard")
     return render(request, "subtask_progress.html", {"form": form, "subtask": subtask})
-
 
 # ── Documents ─────────────────────────────────────────────────────────────────
 
@@ -199,7 +219,6 @@ def upload_document(request):
         return redirect("group_create")
 
     FormClass = LeaderDocumentForm if is_leader else MemberDocumentForm
-
     form = FormClass(group, request.POST or None, request.FILES or None)
 
     if request.method == "POST" and form.is_valid():
@@ -213,31 +232,23 @@ def upload_document(request):
 
     return render(request, "upload_document.html", {"form": form, "is_leader": is_leader})
 
+
 @login_required(login_url="login")
 def document_delete(request, pk):
     doc = get_object_or_404(Document, pk=pk)
-    # Allow delete if user is the uploader or the leader of the group
     if request.user == doc.uploaded_by or Group.objects.filter(leader=request.user, pk=doc.group.pk).exists():
         doc.delete()
     return redirect("dashboard")
 
-
-# ── Member Profile View ───────────────────────────────────────────────────────
+# ── Member Profile ────────────────────────────────────────────────────────────
 
 @login_required(login_url="login")
 def member_profile(request, user_id):
-    """Leader views a member's profile."""
     member = get_object_or_404(User, pk=user_id)
     profile, _ = Profile.objects.get_or_create(user=member)
-    # Get the group where the member belongs (assuming one group per member for simplicity)
     group = Group.objects.filter(members=member).first()
-    if not group:
-        # If no group, perhaps redirect or show empty
-        subtasks = SubTask.objects.none()
-        documents = Document.objects.none()
-    else:
-        subtasks = SubTask.objects.filter(assigned_to=member, work__group=group)
-        documents = Document.objects.filter(uploaded_by=member, group=group)
+    subtasks = SubTask.objects.filter(assigned_to=member, work__group=group) if group else SubTask.objects.none()
+    documents = Document.objects.filter(uploaded_by=member, group=group) if group else Document.objects.none()
     return render(request, "member_profile.html", {
         "member": member,
         "profile": profile,
@@ -246,20 +257,14 @@ def member_profile(request, user_id):
         "group": group,
     })
 
-#--AI LOGIC VIEW------
-
+# ── Document text extractor ───────────────────────────────────────────────────
 
 def _extract_document_text(doc):
-    """Return plain text from a Document instance."""
     if doc.doc_type == "text" and doc.text_content:
         return doc.text_content
-
     if not doc.file:
         return ""
-
     file_name = doc.file.name.lower()
-
-    # PDF
     if file_name.endswith(".pdf"):
         try:
             import pdfplumber
@@ -267,8 +272,6 @@ def _extract_document_text(doc):
                 return "\n".join(p.extract_text() or "" for p in pdf.pages)
         except Exception:
             return ""
-
-    # Word
     if file_name.endswith(".docx"):
         try:
             from docx import Document as DocxDocument
@@ -276,23 +279,16 @@ def _extract_document_text(doc):
             return "\n".join(p.text for p in d.paragraphs)
         except Exception:
             return ""
-
     if file_name.endswith(".doc"):
         try:
             import subprocess
-            result = subprocess.run(
-                ["antiword", doc.file.path],
-                capture_output=True, text=True
-            )
+            result = subprocess.run(["antiword", doc.file.path], capture_output=True, text=True)
             return result.stdout
         except Exception:
             return ""
-
     return ""
 
-
-
-# ── AI: chat endpoint ─────────────────────────────────────────────────────────
+# ── AI: chat ──────────────────────────────────────────────────────────────────
 
 @require_POST
 @login_required(login_url="login")
@@ -314,7 +310,6 @@ def ai_chat(request):
         else Group.objects.filter(members=request.user).first()
     )
 
-    # Build full prompt with context baked in (Gemini style — no separate system param)
     context_parts = [
         "You are Curio AI, a helpful assistant for a university group project management system.",
         f"You are talking to: {request.user.username} ({'Group Leader' if is_leader else 'Member'}).",
@@ -335,9 +330,7 @@ def ai_chat(request):
         for doc in docs:
             text = _extract_document_text(doc)
             if text:
-                context_parts.append(
-                    f"Document '{doc.title or 'Untitled'}' content:\n{text[:800]}"
-                )
+                context_parts.append(f"Document '{doc.title or 'Untitled'}' content:\n{text[:800]}")
 
         subtasks = (
             SubTask.objects.filter(work__group=group)
@@ -351,27 +344,15 @@ def ai_chat(request):
             ]
             context_parts.append("Current tasks:\n" + "\n".join(task_lines))
 
-    # Combine context + user message into one prompt for Gemini
-    full_prompt = "\n\n".join(context_parts) + f"\n\nUser question: {user_message}"
+    full_prompt = "\n\n".join(context_parts) + f"\n\nUser question: {user_message}\nAnswer:"
 
     try:
-        response = requests.post(
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}",
-        headers={"Content-Type": "application/json"},
-        json={
-            "contents": [{"parts": [{"text": full_prompt}]}],
-        },
-        timeout=30,)
-        data = response.json()
-        reply = data["candidates"][0]["content"]["parts"][0]["text"]
+        reply = _call_ai(full_prompt)
+        if not reply:
+            return JsonResponse({"error": "AI returned an empty response. Try again."}, status=500)
         return JsonResponse({"reply": reply})
-
-    except (KeyError, IndexError):
-        error_msg = data.get("error", {}).get("message", "Unexpected response from Gemini.")
-        return JsonResponse({"error": error_msg}, status=500)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-
 
 # ── AI: auto-assign tasks ─────────────────────────────────────────────────────
 
@@ -392,14 +373,12 @@ def ai_assign_tasks(request):
     work = get_object_or_404(Work, id=work_id, group=group)
 
     if doc_id:
-        # Specific doc requested
         doc = get_object_or_404(Document, id=doc_id, group=group)
     else:
-        # Priority 1: doc tied directly to this work
+        # Priority 1: doc tied to this specific work
         doc = Document.objects.filter(
             group=group, work=work, uploaded_by=request.user
         ).order_by("-uploaded_at").first()
-
         # Priority 2: any leader doc in the group
         if not doc:
             doc = Document.objects.filter(
@@ -455,33 +434,36 @@ Required output format (JSON array only):
   {{"title": "Another subtask", "assigned_to": "username"}}
 ]"""
 
+    raw = ""
     try:
-        response = requests.post(
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}",
-        headers={"Content-Type": "application/json"},
-        json={
-            "contents": [{"parts": [{"text": prompt}]}],
-        },
-        timeout=30,)
-        data = response.json()
-        raw = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        raw = _call_ai(prompt)
+        if not raw:
+            return JsonResponse({"error": "AI returned an empty response."}, status=500)
 
+        # Strip markdown fences if model adds them anyway
         if "```" in raw:
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
-                raw = raw.strip()
+        raw = raw.strip()
 
-            subtask_suggestions = json.loads(raw)
+        # Find the JSON array even if model adds text before/after
+        start = raw.find("[")
+        end = raw.rfind("]") + 1
+        if start == -1 or end == 0:
+            return JsonResponse(
+                {"error": f"No JSON array found in AI response: {raw[:200]}"},
+                status=500,
+            )
+        raw = raw[start:end]
+
+        subtask_suggestions = json.loads(raw)
 
     except json.JSONDecodeError as e:
         return JsonResponse(
-        {"error": f"AI returned invalid JSON: {str(e)}. Raw: {raw[:200]}"},
-        status=500,
+            {"error": f"AI returned invalid JSON: {str(e)}. Raw: {raw[:200]}"},
+            status=500,
         )
-    except (KeyError, IndexError):
-        error_msg = data.get("error", {}).get("message", "Unexpected response from Gemini.")
-        return JsonResponse({"error": error_msg}, status=500)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
