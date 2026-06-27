@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Create Account</title>
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}" />
     <link rel="stylesheet" href="{% static 'css/login.css' %}" />
   </head>
   <body>
@@ -15,7 +16,7 @@
 
         <form method="post">
           {% csrf_token %} {% if form.non_field_errors %}
-          <p style="color: red">{{ form.non_field_errors }}</p>
+          <p style="color: var(--color-danger-text);">{{ form.non_field_errors }}</p>
           {% endif %}
 
           <div class="form-group">

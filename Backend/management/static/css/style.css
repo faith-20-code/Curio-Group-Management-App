@@ -1,4 +1,11 @@
+/* ==========================================================
+   STYLE.CSS — marketing/home page only (index.html)
+   Requires theme.css loaded first for CSS variables.
 
+   Palette: Blue / Teal / Navy / White (see theme.css).
+   Modern, innovative, collaborative feel — bright backgrounds,
+   confident blue CTAs, teal accents, navy headers.
+   ========================================================== */
 
 * {
   margin: 0;
@@ -9,22 +16,23 @@
 }
 
 body {
-  background-color: #f8f9fc;
-  color: #202020;
+  background-color: var(--color-white);
+  color: var(--color-navy);
   line-height: 1.6;
 }
-h1{
-  color: #0a0a0a;
+
+h1, h2, h3 {
+  color: var(--color-navy);
 }
+
 /* ===== NAVBAR ===== */
 .navbar {
-  background: #f8f9fc;
-  color: rgb(15, 15, 15);
+  background: var(--color-white);
   padding: 15px 0;
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(15, 15, 26, 0.06);
 }
 
 .navbar .container {
@@ -38,6 +46,7 @@ h1{
 .logo {
   font-size: 2.1em;
   font-weight: 700;
+  color: var(--color-blue);
 }
 
 .nav-links {
@@ -48,65 +57,75 @@ h1{
 }
 
 .nav-links a {
-  color: rgb(39, 39, 39);
+  color: var(--color-navy);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
 .nav-links a:hover {
-  color: #46468c;
+  color: var(--color-blue);
 }
 
 /* ===== HERO SECTION ===== */
 .hero {
-  background: #f0edf3;
-  color: #191819;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdfa 100%);
+  color: var(--color-navy);
   text-align: center;
   padding: 100px 20px;
 }
 
+.hero-content {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
 .hero h2 {
-  font-size: 2.5em;
+  font-size: 2.6em;
   margin-bottom: 15px;
-  color: #1d1c1c;
+  color: var(--color-navy);
 }
 
 .hero p {
   font-size: 1.1em;
   max-width: 700px;
   margin: 0 auto 30px;
-  color: #1d1c1c;
+  color: var(--color-text-muted);
 }
 
 .hero-buttons .btn {
-  padding: 12px 25px;
+  padding: 12px 28px;
   border-radius: 30px;
   text-decoration: none;
   margin: 10px;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   font-weight: 600;
+  display: inline-block;
 }
 
+/* Primary: solid indigo on light hero — was white-on-white before
+   (background:white, color:#202020, hero background also light =
+   invisible button). Now a confident filled accent button. */
 .btn.primary {
-  background: white;
-  color: #202020;
+  background: var(--color-blue);
+  color: var(--color-white);
 }
 
 .btn.primary:hover {
-  background: #29157f;
-  color: white;
+  background: var(--color-blue-dark);
 }
 
+/* Secondary: outlined, was white border on a light hero (invisible).
+   Switched to dark outline so it reads against the light background. */
 .btn.secondary {
   background: transparent;
-  color: white;
-  border: 2px solid white;
+  color: var(--color-navy);
+  border: 2px solid var(--color-navy);
 }
 
 .btn.secondary:hover {
-  background: white;
-  color: #101111;
+  background: var(--color-navy);
+  color: var(--color-white);
 }
 
 /* ===== SECTIONS ===== */
@@ -121,7 +140,6 @@ section {
 }
 
 h2 {
-  color: #161616;
   text-align: center;
   margin-bottom: 20px;
 }
@@ -129,6 +147,7 @@ h2 {
 p {
   text-align: center;
   margin-bottom: 15px;
+  color: var(--color-text-muted);
 }
 
 /* ===== ABOUT ===== */
@@ -137,7 +156,6 @@ p {
   margin: 15px auto;
   font-size: 1.05em;
 }
-
 
 /* ===== ABOUT CARDS ===== */
 .abouts .about-grid {
@@ -148,85 +166,141 @@ p {
 }
 
 .about-card {
-  background: #eae8ef;
+  background: var(--color-pending-bg);
   padding: 25px;
-  border-radius: 10px;
+  border-radius: 12px;
   transition: background 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 2px 8px rgba(15, 15, 26, 0.04);
 }
 
 .about-card:hover {
-  background: #a297c200;
+  background: #dbeafe;
   transform: translateY(-4px);
 }
 
 .about-card h3 {
-  color: #1c1b1c;
   margin-bottom: 10px;
+  color: var(--color-navy);
 }
 
 /* ===== CONTACT ===== */
-.contact form {
+/* Was .contact form / .contact input,textarea — but index.html actually
+   uses class="contact-left" on the form and class="contact-inputs" on
+   each field, so none of the old rules were matching anything. */
+.contact-left {
   max-width: 600px;
   margin: 30px auto;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 6px;
+  text-align: left;
 }
 
-.contact input, .contact textarea {
+.contact-left label {
+  font-weight: 600;
+  font-size: 0.9em;
+  color: var(--color-navy);
+  margin-top: 10px;
+}
+
+.contact-inputs {
   padding: 12px;
-  border: 1px solid #e8e7f7;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
   font-size: 1em;
+  background: var(--color-bg);
+  font-family: inherit;
+  color: var(--color-navy);
 }
 
-.contact button {
+.contact-inputs:focus {
+  outline: none;
+  border-color: var(--color-blue);
+}
+
+.contact-left button {
   padding: 15px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease;
   font-size: 1em;
-  background: white;
-  color: #202020;
+  background: var(--color-blue);
+  color: var(--color-white);
+  font-weight: 600;
+  margin-top: 14px;
 }
 
-.contact button:hover {
-  background: #29157f;
-  color: white;
+.contact-left button:hover {
+  background: var(--color-blue-dark);
 }
 
 /* ===== FOOTER ===== */
 footer {
-  background: #fdfcfd;
-  color: rgb(19, 18, 18);
+  background: var(--color-bg);
+  color: var(--color-navy);
   text-align: center;
-  padding: 25px 15px;
+  padding: 30px 15px;
 }
 
-footer .social-links {
-  margin-top: 10px;
+/* index.html reuses class="contact" inside the footer for the
+   phone/email row — that's the SAME class as the #contact section's
+   wrapper above, so footer text was inheriting contact-form spacing
+   and centering rules meant for a completely different block. Scoped
+   this specifically to footer so the two no longer collide. */
+footer .contact {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  font-size: 0.95em;
+  color: var(--color-text-muted);
 }
 
-footer a {
-  color: #1a1a1b;
+footer .contact i {
+  color: var(--color-blue);
+  margin-right: 4px;
+}
+
+/* HTML uses class="socials", CSS previously only defined
+   .social-links — renamed/added to match what's actually in the DOM. */
+footer .socials {
+  margin-top: 6px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+footer .socials a {
+  color: var(--color-blue);
   text-decoration: none;
-  margin: 0 10px;
+  font-size: 1.2em;
   transition: color 0.3s ease;
 }
 
+footer .socials a:hover {
+  color: var(--color-blue-dark);
+}
+
+footer p {
+  margin-top: 14px;
+  color: var(--color-text-muted);
+  font-size: 0.85em;
+}
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
   .nav-links {
-    flex-direction: row;
-    background: #726aae;
+    flex-direction: column;
+    background: var(--color-white);
+    box-shadow: 0 4px 12px rgba(15, 15, 26, 0.1);
     position: absolute;
-    top: 20px;
+    top: 60px;
     right: 10px;
     width: 190px;
     padding: 10px;
     display: flex;
-    margin-right: 0;
+    gap: 10px;
   }
 }

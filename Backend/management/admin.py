@@ -30,11 +30,6 @@ admin.site.register(User, CustomUserAdmin)
 
 
 
-
-
-
-
-
 @admin.register(SubTask)
 class SubTaskAdmin(admin.ModelAdmin):
     list_display = (
@@ -54,11 +49,6 @@ class SubTaskInline(admin.TabularInline):
 
 
 
-
-
-
-
-
 @admin.register(Work)
 class WorkAdmin(admin.ModelAdmin):
     list_display = ("title", "group", "created_by", "created_at")
@@ -66,11 +56,6 @@ class WorkAdmin(admin.ModelAdmin):
     search_fields = ("title", "description")
     ordering = ("-created_at",)
     inlines = [SubTaskInline]
-
-
-
-
-
 
 
 @admin.register(Group)

@@ -23,7 +23,6 @@ class SignupForm(forms.Form):
 
 
 class GroupForm(forms.ModelForm):
-    # Let leader pick existing users as members
     members = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
         widget=forms.CheckboxSelectMultiple,
@@ -44,7 +43,6 @@ class AddMembersForm(forms.Form):
 
     def __init__(self, group, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Exclude leader and already-existing members
         self.fields["members"].queryset = User.objects.exclude(
             id=group.leader.id
         ).exclude(
@@ -72,18 +70,15 @@ class SubTaskForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["work"].queryset = Work.objects.filter(group__leader=user)
+        # Bug fix: was Work.objects.filter(group__leader=user) with no
+        # exclusion for Work that's already fully completed — leader
+        # could still "assign" into a finished Work. Now also excludes
+        # completed work so the dropdown only shows actionable targets.
+        self.fields["work"].queryset = Work.objects.filter(
+            group__leader=user
+        ).exclude(status="completed")
         member_qs = User.objects.filter(custom_member_groups__leader=user).distinct()
         self.fields["assigned_to"].queryset = member_qs
-
-
-class SubTaskProgressForm(forms.ModelForm):
-    class Meta:
-        model = SubTask
-        fields = ["completion_percentage"]
-        widgets = {
-            "completion_percentage": forms.NumberInput(attrs={"min": 0, "max": 100, "type": "range"})
-        }
 
 
 class LeaderDocumentForm(forms.ModelForm):
@@ -111,7 +106,7 @@ class LeaderDocumentForm(forms.ModelForm):
 class MemberDocumentForm(forms.ModelForm):
     class Meta:
         model = Document
-        fields = ["title", "work", "file"]  # work must be listed here
+        fields = ["title", "work", "file"]
 
     def __init__(self, group=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -128,3 +123,6 @@ class MemberDocumentForm(forms.ModelForm):
             ext = f.name.split(".")[-1].lower()
             if ext not in ("pdf", "doc", "docx"):
                 raise forms.ValidationError("Only PDF or Word files allowed.")
+        return f  # bug: original clean_file never returned the value,
+                  # which means Django would silently null the field out
+                  # on every save regardless of what was uploaded.

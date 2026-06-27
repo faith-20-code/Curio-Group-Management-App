@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login page</title>
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
   <link rel="stylesheet" href="{% static 'css/login.css' %}">
 </head>
 <body>
@@ -17,7 +18,7 @@
         {% csrf_token %}
 
         {% if error %}
-          <p style="color: red; font-size: 0.9rem; margin-bottom: 10px;">{{ error }}</p>
+          <p style="color: var(--color-danger-text); font-size: 0.9rem; margin-bottom: 10px;">{{ error }}</p>
         {% endif %}
 
         <div class="form-group">

@@ -1,0 +1,49 @@
+{% comment %}
+Reusable subtask card with a collapsible steps accordion.
+Usage: {% include "partials/task_card.html" with subtask=subtask %}
+Requires: request.user available in context (for step checkbox permission).
+{% endcomment %}
+<div class="task-card" id="subtask-{{ subtask.pk }}">
+  <div class="task-card-top">
+    <span class="status-pill status-{{ subtask.status }}">{{ subtask.get_status_display }}</span>
+    <span class="task-source">{{ subtask.get_source_display }}</span>
+  </div>
+
+  <p class="task-title">{{ subtask.title }}</p>
+  <p class="task-meta">{{ subtask.work.title }} · {{ subtask.assigned_to.username }}</p>
+
+  <div class="task-progress-bar">
+    <div class="task-progress-fill" style="width:{{ subtask.completion_percentage }}%;"></div>
+  </div>
+  <span class="task-progress-label">{{ subtask.completion_percentage }}%</span>
+
+  {% with step_count=subtask.steps.all|length %}
+  <button class="steps-toggle" onclick="toggleSteps({{ subtask.pk }})" type="button">
+    <span id="steps-chevron-{{ subtask.pk }}">▾</span>
+    Steps {% if step_count %}({{ step_count }}){% endif %}
+  </button>
+
+  <div class="steps-dropdown" id="steps-dropdown-{{ subtask.pk }}" style="display:none;">
+    {% if step_count %}
+      {% for step in subtask.steps.all %}
+      <label class="step-row {% if step.is_done %}done{% endif %}">
+        <input type="checkbox" {% if step.is_done %}checked{% endif %}
+               onchange="toggleStep({{ step.pk }}, this)"
+               {% if subtask.assigned_to_id != request.user.id %}disabled{% endif %}>
+        <span>{{ step.title }}</span>
+        {% if step.generated_by_ai %}<span class="ai-tag">AI</span>{% endif %}
+      </label>
+      {% endfor %}
+    {% elif subtask.assigned_to_id == request.user.id %}
+      <p class="no-steps-text">No steps yet.</p>
+      <button class="gen-btn" type="button" onclick="generateSteps({{ subtask.pk }})">Generate steps with AI</button>
+      <div class="add-step-row">
+        <input type="text" id="manual-step-{{ subtask.pk }}" placeholder="Add a step manually...">
+        <button type="button" class="add-step-btn" onclick="addStep({{ subtask.pk }})">Add</button>
+      </div>
+    {% else %}
+      <p class="no-steps-text">No steps added yet.</p>
+    {% endif %}
+  </div>
+  {% endwith %}
+</div>

@@ -1,0 +1,36 @@
+/* ==========================================================
+   THEME.CSS — single source of truth for the Curio palette.
+   Load this BEFORE dashboard.css / login.css / style.css so
+   their rules can reference these variables.
+
+   Theme: Modern, Innovative, Collaborative
+   - Primary buttons → Blue
+   - Success states  → Teal
+   - Headers         → Navy
+   - Background      → White
+   ========================================================== */
+
+:root {
+  --color-blue: #2563EB;
+  --color-blue-dark: #1d4ed8;   /* hover state for blue buttons */
+  --color-teal: #14B8A6;
+  --color-teal-dark: #0d9488;   /* hover state for teal buttons */
+  --color-white: #FFFFFF;
+  --color-navy: #0F172A;
+
+  /* Supporting neutrals — not in the 4-color brief but needed for
+     borders, muted text, and subtle backgrounds. Kept desaturated and
+     navy-tinted so they sit naturally alongside the brand colors
+     instead of introducing a 5th unrelated color. */
+  --color-bg: #F8FAFC;
+  --color-border: #E2E8F0;
+  --color-text-muted: #64748B;
+  --color-pending-bg: #EFF6FF;
+  --color-pending-text: var(--color-blue);
+  --color-progress-bg: #FEF3C7;
+  --color-progress-text: #B45309;
+  --color-completed-bg: #F0FDFA;
+  --color-completed-text: var(--color-teal-dark);
+  --color-danger-bg: #FEF2F2;
+  --color-danger-text: #DC2626;
+}

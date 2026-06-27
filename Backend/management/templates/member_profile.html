@@ -4,20 +4,21 @@
   <head>
     <meta charset="UTF-8" />
     <title>{{ member.username }}'s Profile</title>
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}" />
     <link rel="stylesheet" href="{% static 'css/login.css' %}" />
   </head>
   <body>
     <div class="auth-container">
-      <div class="auth-card">
+      <div class="auth-card dark-card">
         <div style="text-align: center; margin-bottom: 1rem">
           <div
             style="
-              width: 60px;
-              height: 60px;
+              width: 70px;
+              height: 70px;
               border-radius: 50%;
-              background: #6c63ff;
-              color: #fff;
-              font-size: 1.5rem;
+              background: var(--color-teal);
+              color: var(--color-navy);
+              font-size: 1.6rem;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -26,68 +27,18 @@
           >
             {{ member.username|first|upper }}
           </div>
-          <h2>{{ member.username }}</h2>
-          <p class="subtitle">
-            {{ profile.skills|default:"No skills listed." }}
+          <h2 style="margin-top:12px;">{{ member.username }}</h2>
+          <p class="subtitle">Qualifications &amp; Skills</p>
+          <p style="color:var(--color-navy); font-size:0.95rem; line-height:1.5;">
+            {{ profile.skills|default:"No skills listed yet." }}
           </p>
         </div>
 
-        <h3>Assigned Tasks</h3>
-        {% for s in subtasks %}
-        <div
-          style="
-            margin-bottom: 0.5rem;
-            padding: 0.5rem;
-            border: 1px solid #eee;
-            border-radius: 6px;
-          "
-        >
-          <strong>{{ s.title }}</strong> — {{ s.get_status_display }}
-          <div
-            style="
-              background: #eee;
-              border-radius: 4px;
-              height: 8px;
-              margin-top: 4px;
-            "
-          >
-            <div
-              style="width:{{ s.completion_percentage }}%;background:#6c63ff;height:8px;border-radius:4px;"
-            ></div>
-          </div>
-          <small>{{ s.completion_percentage }}% complete</small>
-        </div>
-        {% empty %}
-        <p>No tasks assigned.</p>
-        {% endfor %}
-
-        <h3 style="margin-top: 1rem">Uploaded Documents</h3>
-        {% for doc in documents %}
-        <div
-          style="
-            padding: 0.4rem 0;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
-        >
-            <div>
-                📄 {{ doc.title|default:doc.get_doc_type_display }} —
-                <small>{{ doc.uploaded_at|date:"d M Y" }}</small>
-                {% if doc.file %}
-                <a href="{{ doc.file.url }}" target="_blank"> View</a>
-                {% endif %}
-            </div>
-            {% if group %} 
-            {% if request.user == doc.uploaded_by or group.leader == request.user %}
-            <a href="{% url 'document_delete' doc.pk %}" onclick="return confirm('Delete this document?');" style="color: red">Delete</a>
-            {% endif %} 
-            {% endif %}
-        </div>
-        {% empty %}
-        <p>No documents uploaded.</p>
-        {% endfor %}
+        {% if is_leader_viewing %}
+        <a href="{% url 'member_tasks' member.id %}" class="btn-primary" style="display:inline-block; text-decoration:none; margin-top:10px;">
+          View {{ member.username }}'s Tasks
+        </a>
+        {% endif %}
 
         <p class="switch" style="margin-top: 1.5rem">
           <a href="{% url 'dashboard' %}">← Back to Dashboard</a>

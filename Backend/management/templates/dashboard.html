@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CURIO - Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}" />
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
     <link
       href="https://cdn.boxicons.com/3.0.8/fonts/basic/boxicons.min.css"
@@ -34,11 +35,7 @@
         <div class="menu-title">MAIN MENU</div>
 
         <nav class="menu">
-          <a
-            href="#"
-            class="menu-item active"
-            onclick="showPage('dashboard', this)"
-          >
+          <a href="#" class="menu-item active" onclick="showPage('dashboard', this)">
             <i class="bx bx-dashboard"></i> Dashboard
           </a>
           <a href="#" class="menu-item" onclick="showPage('chat', this)">
@@ -58,10 +55,8 @@
         <div class="user">
           <div class="user-icon">{{ request.user.username|first|upper }}</div>
           <div class="user-info">
-            <div class="name">{{ request.user.username }}</div> 
-            <div class="status">
-              {% if is_leader %}Leader{% else %}Member{% endif %}
-            </div>
+            <div class="name">{{ request.user.username }}</div>
+            <div class="status">{% if is_leader %}Leader{% else %}Member{% endif %}</div>
           </div>
           <a href="{% url 'logout' %}" style="color: inherit">
             <i class="bx bx-arrow-out-right-square-half"></i>
@@ -79,28 +74,19 @@
           <form method="get" style="margin-bottom: 0.5rem">
             <label for="group-select" style="font-size: 0.9rem">Team:</label>
             <select id="group-select" name="group" onchange="this.form.submit()" style="padding: 0.2rem 0.4rem">
-                {% for g in leader_groups %}
-              <option
-                value="{{ g.id }}"
-                {% if group and g.id == group.id %}selected{% endif %}>
-                {{ g.name }}
-              </option>
+              {% for g in leader_groups %}
+              <option value="{{ g.id }}" {% if group and g.id == group.id %}selected{% endif %}>{{ g.name }}</option>
               {% endfor %}
             </select>
           </form>
           {% endif %}
           <p>
-  {% if group %}
-    {{ group.name }}
-    {% if is_leader %}
-      — Leader View
-    {% else %}
-      — Member View
-    {% endif %}
-  {% else %}
-    Welcome, {{ request.user.username }}
-  {% endif %}
-</p>
+            {% if group %}
+              {{ group.name }} {% if is_leader %}— Leader View{% else %}— Member View{% endif %}
+            {% else %}
+              Welcome, {{ request.user.username }}
+            {% endif %}
+          </p>
         </div>
 
         <div class="cards">
@@ -108,196 +94,155 @@
             <h3>Active Members</h3>
             <div class="value">{{ group.members.count|default:"—" }}</div>
           </div>
-
           <div class="card">
             <h3>{% if is_leader %}Total Tasks{% else %}My Tasks{% endif %}</h3>
             <div class="value">{{ subtasks|length }}</div>
-            <div class="progress">
-              <div
-                class="progress-bar"
-                style="width:{{ task_completion_percentage }}%"
-              ></div>
-            </div>
+            <div class="progress"><div class="progress-bar" style="width:{{ task_completion_percentage }}%"></div></div>
           </div>
-
           <div class="card">
             <h3>Works</h3>
             <div class="value">{{ works|length|default:"0" }}</div>
           </div>
-
           <div class="card">
             <h3>Documents</h3>
             <div class="value">{{ documents|length|default:"0" }}</div>
           </div>
         </div>
 
-        <!-- Bottom section: recent activity + quick actions -->
+        <!-- ============== TASK TABS ============== -->
+        <div class="card" style="margin-top:1.5rem;">
+          <h3>{% if is_leader %}All Group Tasks{% else %}My Tasks{% endif %}</h3>
+
+          <div class="task-tabs">
+            <button class="task-tab-btn active" onclick="showTaskTab('todo', this)">To-Do ({{ todo_total }})</button>
+            <button class="task-tab-btn" onclick="showTaskTab('in_progress', this)">In Progress ({{ in_progress_total }})</button>
+            <button class="task-tab-btn" onclick="showTaskTab('completed', this)">Completed ({{ completed_total }})</button>
+          </div>
+
+          <div class="task-tab-panel active" id="tab-todo">
+            <div class="task-card-grid">
+              {% for subtask in todo_tasks %}
+                {% include "partials/task_card.html" with subtask=subtask %}
+              {% empty %}
+              <p style="color:var(--color-text-muted); font-size:0.85rem;">No pending tasks.</p>
+              {% endfor %}
+            </div>
+            {% if todo_total > 2 %}<a class="more-link" href="{% url 'task_list_view' 'pending' %}">...more ({{ todo_total }} total)</a>{% endif %}
+          </div>
+
+          <div class="task-tab-panel" id="tab-in_progress">
+            <div class="task-card-grid">
+              {% for subtask in in_progress_tasks %}
+                {% include "partials/task_card.html" with subtask=subtask %}
+              {% empty %}
+              <p style="color:var(--color-text-muted); font-size:0.85rem;">No tasks in progress.</p>
+              {% endfor %}
+            </div>
+            {% if in_progress_total > 2 %}<a class="more-link" href="{% url 'task_list_view' 'in_progress' %}">...more ({{ in_progress_total }} total)</a>{% endif %}
+          </div>
+
+          <div class="task-tab-panel" id="tab-completed">
+            <div class="task-card-grid">
+              {% for subtask in completed_tasks %}
+                {% include "partials/task_card.html" with subtask=subtask %}
+              {% empty %}
+              <p style="color:var(--color-text-muted); font-size:0.85rem;">No completed tasks yet.</p>
+              {% endfor %}
+            </div>
+            {% if completed_total > 2 %}<a class="more-link" href="{% url 'task_list_view' 'completed' %}">...more ({{ completed_total }} total)</a>{% endif %}
+          </div>
+        </div>
+
+        <!-- ============== QUICK ACTIONS + DOCUMENTS ============== -->
         <div class="bottom">
           <div class="card">
-            <h3>
-              {% if is_leader %}All Group Tasks{% else %}My Tasks{% endif %}
-            </h3>
+            <h3>Quick Actions</h3>
+            {% if is_leader %}
+            <a href="{% url 'work_create' %}"><button class="quick-btn">➕ New Work</button></a>
+            <a href="{% url 'subtask_create' %}"><button class="quick-btn">➕ Assign Task Manually</button></a>
+            <a href="{% url 'group_create' %}"><button class="quick-btn">🏠 New Group</button></a>
+            <a href="{% url 'group_add_members' group.id %}"><button class="quick-btn">👥 Add Members</button></a>
+            {% endif %}
+            <a href="{% url 'upload_document' %}"><button class="quick-btn">📄 Upload Document</button></a>
+          </div>
+
+          <div class="card">
+            <h3>📁 Documents</h3>
             <div class="activity">
-              {% for subtask in subtasks %}
-              <div
-                class="item"
-                style="
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                  padding: 6px 0;
-                  border-bottom: 1px solid #f0f0f0;
-                "
-              >
+              {% for doc in documents %}
+              <div class="item" style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--color-border);">
                 <div>
-                  <strong>{{ subtask.title }}</strong>
-                  <span
-                    style="margin-left: 8px; font-size: 0.75rem; color: #888"
-                    >{{ subtask.work.title }}</span
-                  >
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px">
-                  <span style="font-size: 0.75rem"
-                    >{{ subtask.completion_percentage }}%</span
-                  >
-                  <span
-                    class="priority {% if subtask.status == 'completed' %}high{% elif subtask.status == 'in_progress' %}medium{% else %}low{% endif %}"
-                    style="
-                      font-size: 0.7rem;
-                      padding: 2px 6px;
-                      border-radius: 4px;
-                    "
-                  >
-                    {{ subtask.get_status_display }}
+                  <strong>{{ doc.title|default:"Untitled" }}</strong>
+                  <span style="margin-left:8px; font-size:0.75rem; color:var(--color-text-muted);">
+                    by {{ doc.uploaded_by.username }} · {{ doc.uploaded_at|date:"d M Y" }}
                   </span>
-                  {% if not is_leader %}
-                  <a href="{% url 'subtask_update' subtask.pk %}">
-                    <button
-                      style="
-                        font-size: 0.7rem;
-                        padding: 3px 8px;
-                        border-radius: 4px;
-                        border: 1px solid #6c63ff;
-                        background: transparent;
-                        color: #6c63ff;
-                        cursor: pointer;
-                      "
-                    >
-                      Update
-                    </button>
-                  </a>
+                </div>
+                <div>
+                  {% if doc.file %}
+                  <a href="{{ doc.file.url }}" target="_blank" style="font-size:0.75rem; color:var(--color-blue); text-decoration:none; border:1px solid var(--color-blue); padding:3px 8px; border-radius:4px;">View</a>
                   {% endif %}
                 </div>
               </div>
               {% empty %}
-              <div class="item" style="color: #999">No tasks yet.</div>
+              <div class="item" style="color:var(--color-text-muted);">No documents uploaded yet.</div>
               {% endfor %}
             </div>
           </div>
-
-          <div class="card">
-            <h3>Quick Actions</h3>
-            {% if is_leader %}
-            <a href="{% url 'work_create' %}"
-              ><button class="quick-btn">➕ New Work</button></a
-            >
-            <a href="{% url 'subtask_create' %}"
-              ><button class="quick-btn">➕ Assign Task</button></a
-            >
-            <a href="{% url 'group_create' %}"
-              ><button class="quick-btn">🏠 New Group</button></a
-            >
-            <a href="{% url 'group_add_members' group.id %}"
-              ><button class="quick-btn">👥 Add Members</button></a
-            >
-            {% endif %}
-            <a href="{% url 'upload_document' %}"
-              ><button class="quick-btn">📄 Upload Document</button></a
-            >
-          </div>
         </div>
 
-        <!-- Documents Section -->
-        <div class="card" style="margin-top: 1.5rem">
-          <h3>📁 Documents</h3>
+        <!-- ============== WORKS LIST ============== -->
+        {% if is_leader and works %}
+        <div class="card" style="margin-top:1.5rem;">
+          <h3>📋 Works</h3>
           <div class="activity">
-            {% for doc in documents %}
-            <div
-              class="item"
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 8px 0;
-                border-bottom: 1px solid #f0f0f0;
-              "
-            >
+            {% for work in works %}
+            <div class="item" style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--color-border);">
               <div>
-                <strong>{{ doc.title|default:"Untitled" }}</strong>
-                <span style="margin-left: 8px; font-size: 0.75rem; color: #888">
-                  by {{ doc.uploaded_by.username }} · {{ doc.uploaded_at|date:"d
-                  M Y" }}
-                </span>
-                {% if doc.text_content %}
-                <p style="font-size: 0.78rem; color: #aaa; margin: 2px 0 0">
-                  {{ doc.text_content|truncatewords:12 }}
-                </p>
+                <strong>{{ work.title }}</strong>
+                <span class="status-pill status-{{ work.status }}" style="margin-left:6px;">{{ work.get_status_display }}</span>
+                <span style="font-size:0.72rem; color:var(--color-text-muted); margin-left:6px;">{{ work.completion_percentage }}%</span>
+                <p style="font-size:0.78rem; color:var(--color-text-muted); margin:2px 0 0;">{{ work.description|truncatewords:10 }}</p>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <a href="{% url 'work_detail' work.pk %}" style="font-size:0.75rem; color:var(--color-blue); text-decoration:none;">Open</a>
+                {% if not work.is_broken_down %}
+                  {% if documents %}
+                  <button onclick="openAssignModal({{ work.id }})" class="gen-btn" style="background:var(--color-blue); color:var(--color-white); border:none;">🤖 Auto-Assign</button>
+                  {% endif %}
+                  <a href="{% url 'subtask_create' %}?work={{ work.id }}" class="gen-btn">✍️ Manual</a>
+                {% else %}
+                  <span style="font-size:0.7rem; color:var(--color-text-muted);">Already broken down</span>
+                  {% if documents %}
+                  <button onclick="openAssignModal({{ work.id }})" class="gen-btn">🤖 Re-run AI</button>
+                  {% endif %}
                 {% endif %}
               </div>
-              <div>
-                {% if doc.file %}
-                <a
-                  href="{{ doc.file.url }}"
-                  target="_blank"
-                  style="
-                    font-size: 0.75rem;
-                    color: #6c63ff;
-                    text-decoration: none;
-                    border: 1px solid #6c63ff;
-                    padding: 3px 8px;
-                    border-radius: 4px;
-                  "
-                >
-                  View
-                </a>
-                {% endif %}
-              </div>
-            </div>
-            {% empty %}
-            <div class="item" style="color: #999">
-              No documents uploaded yet.
             </div>
             {% endfor %}
           </div>
         </div>
+        {% endif %}
       </main>
 
-
-    <!-- ================================================= -->
-    <!-- WORKS LIST — add this inside the dashboard page   -->
-    <!-- after the documents card                          -->
-    <!-- ================================================= -->
-    {% if is_leader and works %}
-    <div class="card" style="margin-top:1.5rem;">
-        <h3>📋 Works</h3>
-            <div class="activity">
-            {% for work in works %}
-            <div class="item" style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0;">
-            <div>
-                <strong>{{ work.title }}</strong>
-                <p style="font-size:0.78rem; color:#aaa; margin:2px 0 0;">{{ work.description|truncatewords:10 }}</p>
-            </div>
-            <div style="display:flex; gap:8px; align-items:center;">
-                {% if documents %}
-                <button onclick="assignTasks({{ work.id }})" style="font-size:0.75rem; padding:4px 10px; border-radius:4px; border:none; background:#6c63ff; color:#fff; cursor:pointer;">🤖 Auto-Assign Tasks
-                </button>
-                {% endif %}
-            </div>
-            </div>
-            {% endfor %}
-            </div>
-    </div>
-    {% endif %}
+      <!-- ============== AUTO-ASSIGN MODE PICKER MODAL ============== -->
+      <div id="assign-modal-backdrop" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.45); z-index:999; align-items:center; justify-content:center;">
+        <div style="background:var(--color-white); border-radius:12px; padding:1.5rem; max-width:360px;">
+          <h3 style="margin-top:0; color:var(--color-navy);">Auto-Assign Tasks</h3>
+          <p id="assign-modal-text" style="font-size:0.85rem; color:var(--color-text-muted);"></p>
+          <div id="assign-modal-mode-choice" style="display:none; margin:0.75rem 0;">
+            <label style="display:block; font-size:0.85rem; margin-bottom:4px;">
+              <input type="radio" name="assign-mode" value="add_only" checked> Add only new subtasks (keep existing)
+            </label>
+            <label style="display:block; font-size:0.85rem;">
+              <input type="radio" name="assign-mode" value="replace"> Replace all existing subtasks
+            </label>
+          </div>
+          <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:1rem;">
+            <button onclick="closeAssignModal()" style="padding:6px 12px; border-radius:6px; border:1px solid var(--color-border); background:var(--color-white); cursor:pointer;">Cancel</button>
+            <button onclick="confirmAssignTasks()" style="padding:6px 12px; border-radius:6px; border:none; background:var(--color-blue); color:var(--color-white); cursor:pointer;">Run AI Assign</button>
+          </div>
+        </div>
+      </div>
 
       <!-- ================================================= -->
       <!-- GROUP CHAT PAGE                                    -->
@@ -306,17 +251,11 @@
         <div class="chat-layout">
           <aside class="chat-sidebar-card">
             <div class="search-container">
-              <input
-                type="text"
-                placeholder="Search messages..."
-                class="chat-search-input"
-              />
+              <input type="text" placeholder="Search messages..." class="chat-search-input" />
             </div>
             <div class="chat-list-scroll">
               <div class="chat-list-item active">
-                <div class="initial-avatar">
-                  {{ group.name|first|upper|default:"G" }}
-                </div>
+                <div class="initial-avatar">{{ group.name|first|upper|default:"G" }}</div>
                 <div class="chat-item-details">
                   <h4>{{ group.name|default:"General" }}</h4>
                   <p>Group chat</p>
@@ -328,22 +267,16 @@
           <section class="chat-window-card">
             <header class="window-header">
               <div class="header-user-info">
-                <div class="header-avatar">
-                  {{ group.name|slice:":2"|upper|default:"GR" }}
-                </div>
+                <div class="header-avatar">{{ group.name|slice:":2"|upper|default:"GR" }}</div>
                 <div>
                   <h3>{{ group.name|default:"Group Chat" }}</h3>
-                  <span class="online-indicator"
-                    >{{ group.members.count|default:"0" }} members</span
-                  >
+                  <span class="online-indicator">{{ group.members.count|default:"0" }} members</span>
                 </div>
               </div>
               <div class="header-tools">
                 <button class="tool-btn"><i class="bx bx-phone"></i></button>
                 <button class="tool-btn"><i class="bx bx-video"></i></button>
-                <button class="tool-btn">
-                  <i class="bx bx-dots-vertical"></i>
-                </button>
+                <button class="tool-btn"><i class="bx bx-dots-vertical"></i></button>
               </div>
             </header>
 
@@ -351,19 +284,14 @@
               <div class="msg-row msg-left">
                 <div class="msg-bubble">
                   <span class="msg-author">System</span>
-                  Welcome to {{ group.name|default:"your group" }}. Live chat
-                  coming soon.
+                  Welcome to {{ group.name|default:"your group" }}. Live chat coming soon.
                   <span class="msg-time">—</span>
                 </div>
               </div>
             </div>
 
             <footer class="window-input-area">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                class="main-input"
-              />
+              <input type="text" placeholder="Type a message..." class="main-input" />
               <button class="send-button">➤</button>
             </footer>
           </section>
@@ -371,183 +299,55 @@
       </main>
 
       <!-- ================================================= -->
-      <!-- TASKS PAGE                                         -->
+      <!-- TASKS PAGE (same tab system, full board context) -->
       <!-- ================================================= -->
       <main id="tasks" class="page main">
         <header class="top-bar">
           <h1>Tasks</h1>
           <p>Manage your group's workload.</p>
           {% if is_leader %}
-          <a href="{% url 'subtask_create' %}">
-            <button class="new-task-btn">
-              <h3><span class="plus">+</span> New Task</h3>
-            </button>
-          </a>
+          <a href="{% url 'subtask_create' %}"><button class="new-task-btn">+ New Task</button></a>
           {% endif %}
         </header>
 
-        <section class="task-board">
-          <!-- TO DO -->
-          <div class="task-column">
-            <div class="column-header">
-              <span>To Do</span>
-              <span class="count">
-  {% for s in subtasks %}
-    {% if s.status == "pending" %}
-      {{ forloop.counter }}
-    {% endif %}
-  {% endfor %}
-</span>
-            </div>
+        <div class="task-tabs">
+          <button class="task-tab-btn active" onclick="showTaskTab('todo2', this)">To-Do ({{ todo_total }})</button>
+          <button class="task-tab-btn" onclick="showTaskTab('in_progress2', this)">In Progress ({{ in_progress_total }})</button>
+          <button class="task-tab-btn" onclick="showTaskTab('completed2', this)">Completed ({{ completed_total }})</button>
+        </div>
 
-            {% for subtask in subtasks %} {% if subtask.status == "pending" %}
-            <div class="task-card">
-              <span class="priority low">pending</span>
-              <p class="title">{{ subtask.title }}</p>
-              <p class="time">{{ subtask.work.title }}</p>
-              <div
-                style="
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                  margin-top: 6px;
-                "
-              >
-                <div class="initial">
-                  {{ subtask.assigned_to.username|first|upper }}
-                </div>
-                {% if not is_leader %}
-                <a href="{% url 'subtask_update' subtask.pk %}">
-                  <button
-                    style="
-                      font-size: 0.68rem;
-                      padding: 3px 8px;
-                      border-radius: 4px;
-                      border: 1px solid #6c63ff;
-                      background: transparent;
-                      color: #6c63ff;
-                      cursor: pointer;
-                    "
-                  >
-                    Update
-                  </button>
-                </a>
-                {% endif %}
-              </div>
-            </div>
-            {% endif %} {% empty %}
-            <div class="task-card">
-              <p class="title" style="color: #999">No pending tasks.</p>
-            </div>
+        <div class="task-tab-panel active" id="tab-todo2">
+          <div class="task-card-grid">
+            {% for subtask in todo_tasks %}
+              {% include "partials/task_card.html" with subtask=subtask %}
+            {% empty %}
+            <p style="color:var(--color-text-muted);">No pending tasks.</p>
             {% endfor %}
           </div>
+          {% if todo_total > 2 %}<a class="more-link" href="{% url 'task_list_view' 'pending' %}">...more ({{ todo_total }} total)</a>{% endif %}
+        </div>
 
-          <!-- IN PROGRESS -->
-          <div class="task-column">
-            <div class="column-header">
-              <span>In Progress</span>
-              <span class="count">—</span>
-            </div>
-
-            {% for subtask in subtasks %} {% if subtask.status == "in_progress"%}
-            <div class="task-card">
-              <span class="priority medium">in progress</span>
-              <p class="title">{{ subtask.title }}</p>
-              <p class="time">{{ subtask.work.title }}</p>
-              <!-- Progress bar -->
-              <div
-                style="
-                  background: #eee;
-                  border-radius: 4px;
-                  height: 6px;
-                  margin: 6px 0;
-                "
-              >
-                <div
-                  style="width:{{ subtask.completion_percentage }}%; background:#f0a500; height:6px; border-radius:4px;"
-                ></div>
-              </div>
-              <div
-                style="
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                "
-              >
-                <div class="initial">
-                  {{ subtask.assigned_to.username|first|upper }}
-                </div>
-                <span style="font-size: 0.7rem; color: #888"
-                  >{{ subtask.completion_percentage }}%</span
-                >
-                {% if not is_leader %}
-                <a href="{% url 'subtask_update' subtask.pk %}"
-                  ><button
-                    style="
-                      font-size: 0.68rem;
-                      padding: 3px 8px;
-                      border-radius: 4px;
-                      border: 1px solid #f0a500;
-                      background: transparent;
-                      color: #f0a500;
-                      cursor: pointer;
-                    "
-                  >
-                    Update
-                  </button>
-                </a>
-                {% endif %}
-              </div>
-            </div>
-            {% endif %} 
+        <div class="task-tab-panel" id="tab-in_progress2">
+          <div class="task-card-grid">
+            {% for subtask in in_progress_tasks %}
+              {% include "partials/task_card.html" with subtask=subtask %}
+            {% empty %}
+            <p style="color:var(--color-text-muted);">No tasks in progress.</p>
             {% endfor %}
           </div>
+          {% if in_progress_total > 2 %}<a class="more-link" href="{% url 'task_list_view' 'in_progress' %}">...more ({{ in_progress_total }} total)</a>{% endif %}
+        </div>
 
-          <!-- DONE -->
-          <div class="task-column">
-            <div class="column-header">
-              <span>Done</span>
-              <span class="count">—</span>
-            </div>
-
-            {% for subtask in subtasks %} {% if subtask.status == "completed" %}
-            <div class="task-card">
-              <span class="priority high">completed</span>
-              <p class="title">{{ subtask.title }}</p>
-              <p class="time">{{ subtask.work.title }}</p>
-              <div
-                style="
-                  background: #eee;
-                  border-radius: 4px;
-                  height: 6px;
-                  margin: 6px 0;
-                "
-              >
-                <div
-                  style="
-                    width: 100%;
-                    background: #4caf50;
-                    height: 6px;
-                    border-radius: 4px;
-                  "
-                ></div>
-              </div>
-              <div
-                style="
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                "
-              >
-                <div class="initial">
-                  {{ subtask.assigned_to.username|first|upper }}
-                </div>
-                <span style="font-size: 0.7rem; color: #4caf50">✓ 100%</span>
-              </div>
-            </div>
-            {% endif %} {% endfor %}
+        <div class="task-tab-panel" id="tab-completed2">
+          <div class="task-card-grid">
+            {% for subtask in completed_tasks %}
+              {% include "partials/task_card.html" with subtask=subtask %}
+            {% empty %}
+            <p style="color:var(--color-text-muted);">No completed tasks yet.</p>
+            {% endfor %}
           </div>
-        </section>
+          {% if completed_total > 2 %}<a class="more-link" href="{% url 'task_list_view' 'completed' %}">...more ({{ completed_total }} total)</a>{% endif %}
+        </div>
       </main>
 
       <!-- ================================================= -->
@@ -560,70 +360,49 @@
             <p>{{ group.name|default:"No group yet." }}</p>
           </div>
           {% if is_leader %}
-          <a href="{% url 'group_add_members' group.id %}">
-            <button class="invite-btn">+ Add Member</button>
-          </a>
+          <a href="{% url 'group_add_members' group.id %}"><button class="invite-btn">+ Add Member</button></a>
           {% endif %}
         </header>
 
         <div class="team-grid">
           {% if group %}
-
-          <!-- Leader card -->
           <div class="member-card active-border">
             <span class="status-tag online">online</span>
             <div class="card-content">
-              <div class="profile-circle">
-                {{ group.leader.username|first|upper }}
-              </div>
+              <div class="profile-circle">{{ group.leader.username|first|upper }}</div>
               <div class="badge-lead">🛡️ LEAD</div>
               <h3>{{ group.leader.username }}</h3>
               <p class="role">Team Leader</p>
             </div>
             <div class="card-actions">
-              <button class="action-btn">
-                <i class="bx bx-envelope"></i> Message
-              </button>
-              <a href="{% url 'member_profile' group.leader.id %}">
-                <button class="action-btn">
-                  <i class="bx bx-user"></i> Profile
-                </button>
-              </a>
+              <button class="action-btn"><i class="bx bx-envelope"></i> Message</button>
+              <a href="{% url 'member_profile' group.leader.id %}"><button class="action-btn"><i class="bx bx-user"></i> Profile</button></a>
             </div>
           </div>
 
-          <!-- Member cards -->
           {% for member in group.members.all %}
           <div class="member-card">
             <span class="status-tag online">online</span>
             <div class="card-content">
-              <div class="profile-circle">
-                {{ member.username|first|upper }}
-              </div>
+              <div class="profile-circle">{{ member.username|first|upper }}</div>
               <h3>{{ member.username }}</h3>
               <p class="role">Member</p>
               {% if member.profile.skills %}
-              <p style="font-size: 0.73rem; color: #100b0b; margin-top: 2px">
-                {{ member.profile.skills|truncatewords:6 }}
-              </p>
+              <p style="font-size:0.73rem; color:var(--color-text-muted); margin-top:2px;">{{ member.profile.skills|truncatewords:6 }}</p>
               {% endif %}
             </div>
             <div class="card-actions">
-              <button class="action-btn">
-                <i class="bx bx-envelope"></i> Message
-              </button>
-              <a href="{% url 'member_profile' member.id %}">
-                <button class="action-btn">
-                  <i class="bx bx-user"></i> Profile
-                </button>
-              </a>
+              <button class="action-btn"><i class="bx bx-envelope"></i> Message</button>
+              <a href="{% url 'member_profile' member.id %}"><button class="action-btn"><i class="bx bx-user"></i> Profile</button></a>
+              {% if is_leader %}
+              <a href="{% url 'member_tasks' member.id %}"><button class="action-btn"><i class="bx bx-task"></i> Tasks</button></a>
+              {% endif %}
             </div>
           </div>
-          {% endfor %} {% else %}
-          <div style="padding: 2rem; color: #8a708c">
-            No group found. {% if is_leader %}
-            <a href="{% url 'group_create' %}">Create one here.</a>
-            {% endif %}
+          {% endfor %}
+          {% else %}
+          <div style="padding:2rem; color:var(--color-text-muted);">
+            No group found. {% if is_leader %}<a href="{% url 'group_create' %}">Create one here.</a>{% endif %}
           </div>
           {% endif %}
         </div>
@@ -632,190 +411,170 @@
       <!-- ================================================= -->
       <!-- AI PAGE                                            -->
       <!-- ================================================= -->
-    <main id="ai" class="page main">
-  <header class="page-header">
-    <div class="header-titles">
-      <div class="ai-header-info">
-        <div class="ai-brand-icon"><i class="bx bx-robot"></i></div>
-        <div>
-          <h1>Curio Assistant</h1>
-          <p>Powered by Claude AI</p>
+      <main id="ai" class="page main">
+        <header class="page-header">
+          <div class="header-titles">
+            <div class="ai-header-info" style="display:flex; align-items:center;">
+              <div class="ai-brand-icon"><i class="bx bx-robot"></i></div>
+              <div>
+                <h1>Curio Assistant</h1>
+                <p>Powered by Claude AI</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="ai-card">
+          <div class="ai-chat-window" id="ai-chat-window">
+            <div class="ai-message-row">
+              <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
+              <div class="ai-bubble">
+                Hello <strong>{{ request.user.username }}</strong>! I'm Curio AI.<br><br>
+                I can help you with:
+                <ul style="margin:6px 0 0 16px; font-size:0.9rem;">
+                  <li>Answering questions about your group's tasks and progress</li>
+                  <li>Summarising uploaded documents</li>
+                  {% if is_leader %}<li>Auto-assigning tasks — use the 🤖 Auto-Assign button next to any work</li>{% endif %}
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div id="assign-result" style="display:none; margin:0.5rem 1rem; padding:10px 14px; border-radius:6px; font-size:0.85rem;"></div>
+          <footer class="ai-footer">
+            <div class="ai-input-wrapper">
+              <input type="text" id="ai-input" placeholder="Ask Curio anything about your group..." class="ai-input">
+              <button class="ai-send-btn" onclick="sendAiMessage()"><i class="bx bx-send"></i></button>
+            </div>
+          </footer>
         </div>
-      </div>
-    </div>
-  </header>
-
-  <div class="ai-card">
-    <div class="ai-chat-window" id="ai-chat-window">
-      <div class="ai-message-row">
-        <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
-        <div class="ai-bubble">
-          Hello <strong>{{ request.user.username }}</strong>! I'm Curio AI.<br><br>
-          I can help you with:
-          <ul style="margin:6px 0 0 16px; font-size:0.9rem;">
-            <li>Answering questions about your group's tasks and progress</li>
-            <li>Summarising uploaded documents</li>
-            {% if is_leader %}
-            <li>Auto-assigning tasks — click <strong>🤖 Auto-Assign Tasks</strong> next to any work on your dashboard</li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Assignment result banner (hidden by default) -->
-    <div id="assign-result" style="display:none; margin:0.5rem 1rem; padding:10px 14px; border-radius:6px; font-size:0.85rem;"></div>
-
-    <footer class="ai-footer">
-      <div class="ai-input-wrapper">
-        <input type="text" id="ai-input" placeholder="Ask Curio anything about your group..." class="ai-input">
-        <button class="ai-send-btn" onclick="sendAiMessage()">
-          <i class="bx bx-send"></i>
-        </button>
-      </div>
-    </footer>
-  </div>
-</main>
+      </main>
     </div>
     <!-- end .container -->
 
-    <!-- ================================================= -->
-    <!-- JAVASCRIPT                                         -->
-    <!-- ================================================= -->
     <script>
-        const CSRF = "{{ csrf_token }}";
+      const CSRF = "{{ csrf_token }}";
 
-        // ── Page navigation ────────────────────────────────
-        function showPage(pageId, element) {
-            document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-            document.getElementById(pageId).classList.add("active");
-            document.querySelectorAll(".menu-item").forEach(l => l.classList.remove("active"));
-            element.classList.add("active");}
+      function showPage(pageId, element) {
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        document.getElementById(pageId).classList.add("active");
+        document.querySelectorAll(".menu-item").forEach(l => l.classList.remove("active"));
+        element.classList.add("active");
+      }
 
-        // ── AI Chat ────────────────────────────────────────
-        async function sendAiMessage() {
-            const input = document.getElementById("ai-input");
-            const chatWindow = document.getElementById("ai-chat-window");
-            const msg = input.value.trim();
-            if (!msg) return;
+      // Generic tab switcher used by both the dashboard panel and the
+      // Tasks page (suffixed IDs avoid collisions between the two).
+      function showTaskTab(key, btn) {
+        const panel = document.getElementById(`tab-${key}`);
+        const tabGroup = btn.parentElement;
+        const panelGroup = panel.parentElement;
+        tabGroup.querySelectorAll(".task-tab-btn").forEach(b => b.classList.remove("active"));
+        panelGroup.querySelectorAll(".task-tab-panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        panel.classList.add("active");
+      }
 
-        // Show user bubble
-        chatWindow.innerHTML += `
-            <div class="ai-message-row" style="justify-content:flex-end;">
-            <div class="ai-bubble" style="background:#6c63ff;color:#fff;">${msg}</div>
-            </div>`;
+      async function sendAiMessage() {
+        const input = document.getElementById("ai-input");
+        const chatWindow = document.getElementById("ai-chat-window");
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        chatWindow.innerHTML += `<div class="ai-message-row" style="justify-content:flex-end;"><div class="ai-bubble" style="background:var(--color-blue);color:#fff;">${msg}</div></div>`;
         input.value = "";
         chatWindow.scrollTop = chatWindow.scrollHeight;
 
-        // Thinking indicator
         const thinkingId = "thinking-" + Date.now();
-        chatWindow.innerHTML += `
-            <div class="ai-message-row" id="${thinkingId}">
-            <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
-            <div class="ai-bubble" style="color:#aaa; font-style:italic;">Thinking...</div>
-            </div>`;
+        chatWindow.innerHTML += `<div class="ai-message-row" id="${thinkingId}"><div class="ai-avatar-mini"><i class="bx bx-robot"></i></div><div class="ai-bubble" style="color:#aaa; font-style:italic;">Thinking...</div></div>`;
         chatWindow.scrollTop = chatWindow.scrollHeight;
 
         try {
-            const res = await fetch("/ai/chat/", {
+          const res = await fetch("/ai/chat/", {
             method: "POST",
-            headers: {"Content-Type": "application/json", "X-CSRFToken": CSRF},
-            body: JSON.stringify({message: msg}),
-        });
-        const data = await res.json();
-
-        // Remove thinking bubble
-        document.getElementById(thinkingId)?.remove();
-
-        const reply = data.reply || data.error || "Something went wrong.";
-        // Convert newlines to <br> for display
-        const formatted = reply.replace(/\n/g, "<br>");
-
-        chatWindow.innerHTML += `
-            <div class="ai-message-row">
-                <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
-                <div class="ai-bubble">${formatted}</div>
-            </div>`;
+            headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
+            body: JSON.stringify({ message: msg }),
+          });
+          const data = await res.json();
+          document.getElementById(thinkingId)?.remove();
+          const reply = data.reply || data.error || "Something went wrong.";
+          const formatted = reply.replace(/\n/g, "<br>");
+          chatWindow.innerHTML += `<div class="ai-message-row"><div class="ai-avatar-mini"><i class="bx bx-robot"></i></div><div class="ai-bubble">${formatted}</div></div>`;
         } catch {
-            document.getElementById(thinkingId)?.remove();
-            chatWindow.innerHTML += `
-            <div class="ai-message-row">
-                <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
-                <div class="ai-bubble" style="color:red;">Connection error. Please try again.</div>
-            </div>`;
+          document.getElementById(thinkingId)?.remove();
+          chatWindow.innerHTML += `<div class="ai-message-row"><div class="ai-avatar-mini"><i class="bx bx-robot"></i></div><div class="ai-bubble" style="color:red;">Connection error. Please try again.</div></div>`;
         }
         chatWindow.scrollTop = chatWindow.scrollHeight;
+      }
+
+      document.getElementById("ai-input").addEventListener("keydown", e => {
+        if (e.key === "Enter") sendAiMessage();
+      });
+
+      let pendingAssignWorkId = null;
+
+      function openAssignModal(workId) {
+        pendingAssignWorkId = workId;
+        const backdrop = document.getElementById("assign-modal-backdrop");
+        const text = document.getElementById("assign-modal-text");
+        const modeChoice = document.getElementById("assign-modal-mode-choice");
+        const triggerBtn = event.target;
+        const alreadyBroken = triggerBtn.textContent.includes("Re-run");
+
+        if (alreadyBroken) {
+          text.textContent = "This work already has subtasks. Choose how AI should handle them:";
+          modeChoice.style.display = "block";
+        } else {
+          text.textContent = "AI will read the linked document and create subtasks assigned by member skill.";
+          modeChoice.style.display = "none";
         }
+        backdrop.style.display = "flex";
+      }
 
-        // Enter key support
-        document.getElementById("ai-input").addEventListener("keydown", e => {
-        if (e.key === "Enter") sendAiMessage();});
+      function closeAssignModal() {
+        document.getElementById("assign-modal-backdrop").style.display = "none";
+        pendingAssignWorkId = null;
+      }
 
-        // ── AI Auto-Assign Tasks ───────────────────────────
-        async function assignTasks(workId) {
-            const btn = event.target;
-            const resultDiv = document.getElementById("assign-result");
+      async function confirmAssignTasks() {
+        const workId = pendingAssignWorkId;
+        const modeChoice = document.getElementById("assign-modal-mode-choice");
+        let mode = "add_only";
+        if (modeChoice.style.display !== "none") {
+          mode = document.querySelector('input[name="assign-mode"]:checked').value;
+        }
+        closeAssignModal();
+        await assignTasks(workId, mode);
+      }
 
-            btn.disabled = true;
-            btn.textContent = "⏳ Analysing document...";
-
-        // Switch to AI page to show progress
+      async function assignTasks(workId, mode) {
         showPage("ai", document.querySelector('[onclick="showPage(\'ai\', this)"]'));
-
         const chatWindow = document.getElementById("ai-chat-window");
         const loadingId = "loading-" + Date.now();
-        chatWindow.innerHTML += `
-        <div class="ai-message-row" id="${loadingId}">
-            <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
-            <div class="ai-bubble" style="color:#aaa; font-style:italic;">📄 Reading your document and matching tasks to member skills...</div>
-        </div>`;
+        chatWindow.innerHTML += `<div class="ai-message-row" id="${loadingId}"><div class="ai-avatar-mini"><i class="bx bx-robot"></i></div><div class="ai-bubble" style="color:#aaa; font-style:italic;">📄 Reading your document and matching tasks to member skills...</div></div>`;
         chatWindow.scrollTop = chatWindow.scrollHeight;
 
         try {
-            const res = await fetch("/ai/assign-tasks/", {
+          const res = await fetch("/ai/assign-tasks/", {
             method: "POST",
-            headers: {"Content-Type": "application/json", "X-CSRFToken": CSRF},
-            body: JSON.stringify({work_id: workId}),
-        });
-        const data = await res.json();
+            headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
+            body: JSON.stringify({ work_id: workId, mode: mode }),
+          });
+          const data = await res.json();
+          document.getElementById(loadingId)?.remove();
 
-        document.getElementById(loadingId)?.remove();
-        btn.disabled = false;
-        btn.textContent = "🤖 Auto-Assign Tasks";
-
-        if (data.error) {
-            chatWindow.innerHTML += `
-            <div class="ai-message-row">
-                <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
-                <div class="ai-bubble" style="color:#e53935;">❌ ${data.error}</div>
-            </div>`;
-        } else {
-        // Build a summary of assignments
-            let taskLines = data.subtasks.map(s =>`<li><strong>${s.title}</strong> → ${s.assigned_to}</li>`).join("");
-
-            chatWindow.innerHTML += `
-            <div class="ai-message-row">
-                <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
-                <div class="ai-bubble">✅ I've created <strong>${data.count} subtasks</strong> and assigned them based on member skills:<br>
-                <ul style="margin:8px 0 0 16px;">${taskLines}</ul>
-                <br>Reload the <strong>Tasks</strong> page to see them on the board.
-                </div>
-            </div>`;
-        
-        // Auto-reload tasks board after 2s
-        setTimeout(() => location.reload(), 2000);}
+          if (data.error) {
+            chatWindow.innerHTML += `<div class="ai-message-row"><div class="ai-avatar-mini"><i class="bx bx-robot"></i></div><div class="ai-bubble" style="color:#e53935;">❌ ${data.error}</div></div>`;
+          } else {
+            let taskLines = data.subtasks.map(s => `<li><strong>${s.title}</strong> → ${s.assigned_to}</li>`).join("");
+            chatWindow.innerHTML += `<div class="ai-message-row"><div class="ai-avatar-mini"><i class="bx bx-robot"></i></div><div class="ai-bubble">✅ I've created <strong>${data.count} subtasks</strong> and assigned them based on member skills:<br><ul style="margin:8px 0 0 16px;">${taskLines}</ul><br>Reload the <strong>Tasks</strong> page to see them.</div></div>`;
+            setTimeout(() => location.reload(), 2000);
+          }
         } catch {
-            document.getElementById(loadingId)?.remove();
-            btn.disabled = false;
-            btn.textContent = "🤖 Auto-Assign Tasks";
-            chatWindow.innerHTML += `
-            <div class="ai-message-row">
-                <div class="ai-avatar-mini"><i class="bx bx-robot"></i></div>
-                <div class="ai-bubble" style="color:red;">Connection error. Please try again.</div>
-            </div>`;
+          document.getElementById(loadingId)?.remove();
+          chatWindow.innerHTML += `<div class="ai-message-row"><div class="ai-avatar-mini"><i class="bx bx-robot"></i></div><div class="ai-bubble" style="color:red;">Connection error. Please try again.</div></div>`;
         }
         chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
+      }
     </script>
+    <script src="{% static 'js/task_card.js' %}"></script>
   </body>
 </html>

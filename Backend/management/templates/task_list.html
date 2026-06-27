@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ status_label }} Tasks</title>
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body style="overflow:auto; height:auto;">
+  <div style="max-width:900px; margin:40px auto; padding:0 20px;">
+    {% if viewing_member %}
+    <a href="{% url 'member_tasks' viewing_member.id %}" style="color:var(--color-blue); text-decoration:none; font-size:0.85rem;">← Back to {{ viewing_member.username }}'s tasks</a>
+    <h1 style="color:var(--color-navy); margin:14px 0 4px;">{{ viewing_member.username }} — {{ status_label }} Tasks</h1>
+    <p style="color:var(--color-text-muted); margin-bottom:24px;">All of {{ viewing_member.username }}'s tasks with this status.</p>
+    {% else %}
+    <a href="{% url 'dashboard' %}" style="color:var(--color-blue); text-decoration:none; font-size:0.85rem;">← Back to dashboard</a>
+    <h1 style="color:var(--color-navy); margin:14px 0 4px;">{{ status_label }} Tasks</h1>
+    <p style="color:var(--color-text-muted); margin-bottom:24px;">
+      {% if is_leader %}All tasks across your group{% else %}Your tasks{% endif %} with this status.
+    </p>
+    {% endif %}
+
+    <div class="task-card-grid">
+      {% for subtask in subtasks %}
+        {% include "partials/task_card.html" with subtask=subtask %}
+      {% empty %}
+      <p style="color:var(--color-text-muted);">No tasks here.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>const CSRF = "{{ csrf_token }}";</script>
+  <script src="{% static 'js/task_card.js' %}"></script>
+</body>
+</html>

@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <!--font awesome-->
@@ -14,8 +15,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Candal&display=swap" rel="stylesheet">
-    <!--Remix icon-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.css">
 </head>
 <body>
     <!-- HEADER -->
@@ -93,7 +92,11 @@
                 <input id="email" type="email" name="email" placeholder="name@email.com" class="contact-inputs" required>
                 <label for="message">Message:</label>
                 <textarea id="message" name="message" placeholder="Write a message" class="contact-inputs" required></textarea>
-                <button type="submit"><i class="ri-send-plane-fill"></i> Send </button>
+                <!-- was ri-send-plane-fill (Remix Icon) — swapped for the
+                     Font Awesome equivalent since Font Awesome is already
+                     loaded via the kit script and Remix Icon was only
+                     ever used for this one icon. -->
+                <button type="submit"><i class="fas fa-paper-plane"></i> Send </button>
             </form>
         </div>
     </section>

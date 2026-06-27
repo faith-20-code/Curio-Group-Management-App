@@ -4,22 +4,37 @@
 <head>
   <meta charset="UTF-8">
   <title>{{ title }}</title>
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
   <link rel="stylesheet" href="{% static 'css/login.css' %}">
 </head>
 <body>
   <div class="auth-container">
     <div class="auth-card">
       <h1>{{ title }}</h1>
+
+      {% if duplicate_warning %}
+      <div style="background:var(--color-progress-bg); border:1px solid #fde68a; border-radius:6px; padding:10px 14px; margin-bottom:1rem; font-size:0.85rem; text-align:left; color:var(--color-progress-text);">
+        ⚠️ A subtask titled "<strong>{{ duplicate_warning.title }}</strong>" already exists on this work,
+        currently assigned to <strong>{{ duplicate_warning.assigned_to.username }}</strong>
+        ({{ duplicate_warning.get_status_display }}, {{ duplicate_warning.completion_percentage }}%).
+        <br><br>
+        Submitting again will <strong>replace</strong> it — the existing subtask and its steps will be deleted.
+      </div>
+      {% endif %}
+
       <form method="post">
         {% csrf_token %}
+        {% if duplicate_warning %}<input type="hidden" name="force" value="1">{% endif %}
         {% for field in form %}
           <div class="form-group">
             <label>{{ field.label }}</label>
             {{ field }}
-            {% if field.errors %}<p style="color:red;">{{ field.errors }}</p>{% endif %}
+            {% if field.errors %}<p style="color:var(--color-danger-text);">{{ field.errors }}</p>{% endif %}
           </div>
         {% endfor %}
-        <button type="submit" class="btn-primary">Assign Task</button>
+        <button type="submit" class="btn-primary">
+          {% if duplicate_warning %}Replace Existing Subtask{% else %}Assign Task{% endif %}
+        </button>
       </form>
       <p class="switch"><a href="{% url 'dashboard' %}">← Back</a></p>
     </div>
